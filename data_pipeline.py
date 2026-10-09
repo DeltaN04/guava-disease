@@ -36,15 +36,19 @@ def augmentation_layers(seed: int = config.SEED) -> tf.keras.Sequential:
     blowing train inputs to [0, ~24] while val/test stayed [0, 1].
     That train/val skew collapsed training to majority-class guessing
     (custom_base test acc 0.445). Fixed with ``value_range=(0, 1)``.
+
+    NOTE (10 Oct 2026): each stochastic layer gets a distinct seed
+    (seed+i) instead of reusing one seed everywhere, so flip/rotate/zoom/
+    contrast/brightness draws are independent yet still reproducible.
     """
     return tf.keras.Sequential(
         [
             tf.keras.layers.RandomFlip("horizontal_and_vertical", seed=seed),
-            tf.keras.layers.RandomRotation(0.15, seed=seed),
-            tf.keras.layers.RandomZoom(0.15, seed=seed),
-            tf.keras.layers.RandomContrast(0.1, value_range=(0, 1), seed=seed),
+            tf.keras.layers.RandomRotation(0.15, seed=seed + 1),
+            tf.keras.layers.RandomZoom(0.15, seed=seed + 2),
+            tf.keras.layers.RandomContrast(0.1, value_range=(0, 1), seed=seed + 3),
             tf.keras.layers.RandomBrightness(
-                0.1, value_range=(0, 1), seed=seed
+                0.1, value_range=(0, 1), seed=seed + 4
             ),
         ],
         name="train_augmentation",

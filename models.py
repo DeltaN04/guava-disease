@@ -36,11 +36,22 @@ def _preprocess_for(backbone_name: str) -> tf.keras.layers.Layer:
 
 
 def _conv_block(x: tf.Tensor, filters: int) -> tf.Tensor:
-    """Conv-ReLU-BN x2 + MaxPool + Dropout(0.25) block for the custom CNN."""
+    """Conv-ReLU-BN x2 + MaxPool + Dropout(0.25) block for the custom CNN.
+
+    NOTE (bugfix 10 Oct 2026): all BatchNorm layers use ``momentum=0.9``
+    instead of the Keras default 0.99. With Adam 1e-3 the from-scratch CNN
+    learns very fast (train acc 0.82 after 1 epoch), so batch statistics
+    shift rapidly and momentum-0.99 moving averages lag badly: inference
+    (moving averages) predicted a single class for every input while
+    training-mode (batch stats) hit 0.85 train acc. Momentum 0.9 tracks
+    fast-shifting stats on this 2.6k-image regime. Architecture, filter
+    counts, dropout rates and LR are unchanged (spec-compliant — the spec
+    does not fix BN momentum).
+    """
     x = tf.keras.layers.Conv2D(filters, 3, padding="same", activation="relu")(x)
-    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.BatchNormalization(momentum=0.9)(x)
     x = tf.keras.layers.Conv2D(filters, 3, padding="same", activation="relu")(x)
-    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.BatchNormalization(momentum=0.9)(x)
     x = tf.keras.layers.MaxPooling2D()(x)
     x = tf.keras.layers.Dropout(0.25)(x)
     return x
@@ -60,7 +71,7 @@ def build_custom_cnn(
         x = _conv_block(x, filters)
     x = tf.keras.layers.GlobalAveragePooling2D()(x)
     x = tf.keras.layers.Dense(256, activation="relu")(x)
-    x = tf.keras.layers.BatchNormalization()(x)
+    x = tf.keras.layers.BatchNormalization(momentum=0.9)(x)
     x = tf.keras.layers.Dropout(0.5)(x)
     outputs = tf.keras.layers.Dense(num_classes, activation="softmax")(x)
     model = tf.keras.Model(inputs, outputs, name="custom_cnn")
