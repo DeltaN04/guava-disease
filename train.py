@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
     return ap.parse_args()
 
 
-def make_callbacks(stem: str):
+def make_callbacks(stem: str, append: bool = False):
     """Checkpoint + early stopping + LR schedule + CSV log."""
     ckpt = config.MODELS_DIR / f"{stem}.keras"
     csv_path = config.LOGS_DIR / f"{stem}.csv"
@@ -62,7 +62,7 @@ def make_callbacks(stem: str):
         tf.keras.callbacks.ReduceLROnPlateau(
             monitor="val_loss", factor=config.RLROP_FACTOR,
             patience=config.RLROP_PATIENCE, verbose=1),
-        tf.keras.callbacks.CSVLogger(csv_path),
+        tf.keras.callbacks.CSVLogger(csv_path, append=append),
     ]
     return cbs, ckpt, csv_path
 
@@ -137,11 +137,11 @@ def train_transfer(args, train_ds, val_ds, class_names) -> dict:
         model = model_zoo.unfreeze_for_fine_tuning(model, backbone)
         total, trainable = model_zoo.count_params(model)
         print(f"Fine-tuning: {trainable}/{total} trainable params", flush=True)
-        cbs2, ckpt2, _ = make_callbacks(stem)
+        cbs2, ckpt2, _ = make_callbacks(stem, append=True)
         h2 = model.fit(train_ds, validation_data=val_ds,
-                       epochs=args.ft_epochs, callbacks=cbs2,
+                       epochs=n1 + args.ft_epochs, callbacks=cbs2,
                        class_weight=cw, verbose=2, initial_epoch=n1)
-        n2 = len(h2.history["loss"]) - n1
+        n2 = len(h2.history["loss"])
         best = max(best, float(max(h2.history["val_accuracy"])))
         ckpt = ckpt2 if ckpt2.exists() else ckpt
     dt = time.time() - t0
