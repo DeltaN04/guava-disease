@@ -1,0 +1,4 @@
+split,Anthracnose,fruit_fly,healthy_guava
+test,156,132,94
+train,1080,918,649
+val,308,262,185

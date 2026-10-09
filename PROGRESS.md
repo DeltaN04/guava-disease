@@ -3,7 +3,7 @@
 | Phase | Status | Key numbers / notes |
 |---|---|---|
 | 0 Recon + setup | DONE | macOS 25.5 arm64, Py3.12, TF 2.21 CPU-only, Tectonic 0.17.0; venv + requirements installed; dataset staged at `Dataset/` |
-| 1 Dataset audit | TODO | — |
+| 1 Dataset audit | DONE | 3784 files, 0 corrupt, all 512x512 RGB PNG; val=755 on disk vs 775 expected (discrepancy reported); **leakage: 100% of val+test share an original with train (454/473 originals span splits)**; `Dataset_leakfree/` built; figs in `outputs/audit/` |
 | 2 Implementation + smoke test | TODO | — |
 | 3 Experiments | TODO | — |
 | 4 Evaluation + analysis | TODO | — |

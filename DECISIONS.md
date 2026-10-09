@@ -40,3 +40,25 @@
   `[Anthracnose, fruit_fly, healthy_guava]`; this ordering defines label
   indices everywhere. Display names for plots/slides: Anthracnose,
   Fruit Flies, Healthy.
+
+## D6. Audit cluster-key bugfix: timestamp filenames (Phase 1)
+- Two filename patterns exist: `<int>_unsharp_clahe_augmented_N.png` (all
+  classes) and `<YYYYMMDD>_<HHMMSS>_unsharp_clahe_augmented_N.png` (600
+  fruit-fly files). First audit version keyed clusters on the leading int,
+  which lumps all same-day timestamp files into one bogus cluster.
+  Fixed `orig_id_of()` to use the full `YYYYMMDD_HHMMSS` stamp for those.
+  Verified: 473 unique (class, key) clusters x exactly 8 variants each =
+  3,784 files, matching the "473 originals x8" release story exactly.
+
+## D7. Leakage headline (Phase 1, verified on disk)
+- 454 of 473 originals (96%) have augmented variants scattered across
+  multiple splits. **100% of val (755/755) and 100% of test (382/382)
+  images share their source original with the training set** (spot-checked
+  by hand, e.g. test Anthracnose `101_..._augmented_5.png` has 6 same-
+  original siblings in train). phash near-duplicate search (threshold 6)
+  only flags 8/5/3 cross-split pairs — augmentation perturbs hashes, so
+  the filename-prefix analysis is the definitive evidence and both numbers
+  are reported. Consequence: released-split test accuracy is optimistic;
+  we report it AND a `Dataset_leakfree/` re-split (cluster-grouped 70/20/10,
+  seed 42) per the brief. Val total is 755 on disk vs 775 in the release
+  notes (train 2647 and test 382 match); reported as a discrepancy.

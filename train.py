@@ -72,6 +72,13 @@ def check_save_reload(model: tf.keras.Model, sample: tf.Tensor) -> bool:
     tmp = config.MODELS_DIR / "_smoke_roundtrip.keras"
     before = model.predict(sample, verbose=0)
     model.save(tmp)
+    reloaded = tf.keras.models.load_model(tmp, compile=False)
+    after = reloaded.predict(sample, verbose=0)
+    tmp.unlink(missing_ok=True)
+    ok = bool(np.allclose(before, after, atol=1e-6))
+    print(f"save/reload prediction parity: {ok}", flush=True)
+    return ok
+
 
 def train_custom(args, train_ds, val_ds, class_names) -> dict:
     """Train Model A from scratch; return JSON-serialisable meta record."""
@@ -178,10 +185,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-    reloaded = tf.keras.models.load_model(tmp, compile=False)
-    after = reloaded.predict(sample, verbose=0)
-    tmp.unlink(missing_ok=True)
-    ok = bool(np.allclose(before, after, atol=1e-6))
-    print(f"save/reload prediction parity: {ok}", flush=True)
-    return ok

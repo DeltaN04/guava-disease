@@ -35,7 +35,8 @@ import config  # noqa: E402
 
 IMG_EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
 NEAR_DUP_THRESHOLD = 6  # max phash hamming distance = "near duplicate"
-PREFIX_RE = re.compile(r"^(\d+)_")
+TIMESTAMP_RE = re.compile(r"^(\d{8}_\d{6})_")
+INT_RE = re.compile(r"^(\d+)_")
 
 
 def iter_image_files(split_dir: Path) -> list[Path]:
@@ -48,8 +49,19 @@ def iter_image_files(split_dir: Path) -> list[Path]:
 
 
 def orig_id_of(path: Path) -> str:
-    """Original-image cluster key: leading numeric id, else full stem."""
-    m = PREFIX_RE.match(path.name)
+    """Original-image cluster key.
+
+    Two filename patterns exist (both end ``_unsharp_clahe_augmented_N.png``):
+      * ``<int>_unsharp_...`` -> the leading int (e.g. ``94``)
+      * ``<YYYYMMDD>_<HHMMSS>_unsharp_...`` (fruit-fly only) -> the full
+        ``YYYYMMDD_HHMMSS`` stamp. NB: the bare ``YYYYMMDD`` date alone is
+        NOT unique (one shooting day yields ~75 originals), so the time
+        component is required. Callers qualify the key with the class name.
+    """
+    m = TIMESTAMP_RE.match(path.name)
+    if m:
+        return m.group(1)
+    m = INT_RE.match(path.name)
     return m.group(1) if m else path.stem
 
 
@@ -74,6 +86,21 @@ def scan_split(dataset_dir: Path, split: str, class_names: list[str]) -> pd.Data
     return pd.DataFrame(rows)
 
 
+_POPCOUNT16 = np.array([bin(i).count("1") for i in range(65536)],
+                     dtype=np.uint8)
+
+
+def _hamming64(a: np.uint64, B: np.ndarray) -> np.ndarray:
+    """Vectorised Hamming distance between scalar hash ``a`` and array ``B``."""
+    x = np.bitwise_xor(np.uint64(a), B.astype(np.uint64))
+    m = np.uint64(0xFFFF)
+    return (_POPCOUNT16[(x & m).astype(np.int64)]
+            + _POPCOUNT16[((x >> np.uint64(16)) & m).astype(np.int64)]
+            + _POPCOUNT16[((x >> np.uint64(32)) & m).astype(np.int64)]
+            + _POPCOUNT16[((x >> np.uint64(48)) & m).astype(np.int64)]
+            ).astype(np.int64)
+
+
 def cross_split_pairs(df: pd.DataFrame, max_dist: int) -> dict:
     """Cross-split near-duplicate search on phash values (vectorised).
 
@@ -89,7 +116,7 @@ def cross_split_pairs(df: pd.DataFrame, max_dist: int) -> dict:
             B = ok[ok.split == splits[j]]["hint"].to_numpy(dtype=np.uint64)
             exact = near = 0
             for a in A:  # loop over smaller side, vectorised over B
-                d = np.bit_count(a ^ B)
+                d = _hamming64(a, B)
                 exact += int(np.sum(d == 0))
                 near += int(np.sum((d > 0) & (d <= max_dist)))
             out[(splits[i], splits[j])] = {"exact": exact, "near": near}

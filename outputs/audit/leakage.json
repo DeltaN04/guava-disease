@@ -1,0 +1,22 @@
+{
+  "phash_threshold": 6,
+  "pairs": {
+    "train-val": {
+      "exact": 0,
+      "near": 8
+    },
+    "train-test": {
+      "exact": 0,
+      "near": 5
+    },
+    "val-test": {
+      "exact": 0,
+      "near": 3
+    }
+  },
+  "prefix": {
+    "n_prefixes_across_splits": 454,
+    "val_files_sharing_prefix_with_train": 755,
+    "test_files_sharing_prefix_with_train": 382
+  }
+}
