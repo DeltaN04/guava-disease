@@ -1,0 +1,251 @@
+@misc{gfdd24,
+  title        = {Guava Fruit Disease Dataset},
+  author       = {Al Amin, Md and Mahmud, Md Iqbal and Rahman, Asadullah Bin and Parvin, Mst Aktarina and Al Mamun, Md Abdulla},
+  year         = {2024},
+  month        = {November},
+  version      = {1},
+  publisher    = {Mendeley Data},
+  doi          = {10.17632/bkdkc4n835.1},
+  url          = {https://data.mendeley.com/datasets/bkdkc4n835},
+  note         = {473 original field photos (512x512 PNG, RGB), augmented x8 to 3,784; classes Anthracnose / Fruit Flies / Healthy; released splits train 2647 / val 775 / test 382; CC BY 4.0; Hajee Mohammad Danesh Sci. and Tech. Univ.}
+}
+
+@inproceedings{sandler2018mobilenetv2,
+  title     = {{MobileNetV2}: Inverted Residuals and Linear Bottlenecks},
+  author    = {Sandler, Mark and Howard, Andrew and Zhu, Menglong and Zhmoginov, Andrey and Chen, Liang-Chieh},
+  booktitle = {Proc. IEEE Conf. on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {4510--4520},
+  year      = {2018},
+  eprint    = {1801.04381},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1801.04381}
+}
+
+@article{selvaraju2020gradcam,
+  title   = {Grad-{CAM}: Visual Explanations from Deep Networks via Gradient-Based Localization},
+  author  = {Selvaraju, Ramprasaath R. and Cogswell, Michael and Das, Abhishek and Vedantam, Ramakrishna and Parikh, Devi and Batra, Dhruv},
+  journal = {Int. J. Comput. Vis. (IJCV)},
+  volume  = {128},
+  number  = {2},
+  pages   = {336--359},
+  year    = {2020},
+  note    = {Preliminary version at ICCV 2017; arXiv:1610.02391},
+  url     = {https://arxiv.org/abs/1610.02391}
+}
+
+@article{tampu2022leakage,
+  title   = {Inflation of Test Accuracy Due to Data Leakage in Deep Learning-Based Classification of {OCT} Images},
+  author  = {Tampu, Iulian Emil and Eklund, Anders and Haj-Hosseini, Neda},
+  journal = {Scientific Data},
+  volume  = {9},
+  pages   = {580},
+  year    = {2022},
+  doi     = {10.1038/s41597-022-01618-6},
+  url     = {https://www.nature.com/articles/s41597-022-01618-6},
+  note    = {Improper splits inflate accuracy by 5--30 pp (MCC 0.07--0.43); motivates our leak-free re-split}
+}
+
+@article{mohanty2016plant,
+  title   = {Using Deep Learning for Image-Based Plant Disease Detection},
+  author  = {Mohanty, Sharada P. and Hughes, David P. and Salath{\'e}, Marcel},
+  journal = {Frontiers in Plant Science},
+  volume  = {7},
+  pages   = {1419},
+  year    = {2016},
+  doi     = {10.3389/fpls.2016.01419},
+  url     = {https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2016.01419/full},
+  note    = {PlantVillage 54,306 leaf images, 38 classes; AlexNet/GoogLeNet up to 99.35\% accuracy; founding result for crop-disease CNNs}
+}
+
+@inproceedings{kingma2015adam,
+  title     = {Adam: A Method for Stochastic Optimization},
+  author    = {Kingma, Diederik P. and Ba, Jimmy},
+  booktitle = {Proc. Int. Conf. on Learning Representations (ICLR)},
+  year      = {2015},
+  eprint    = {1412.6980},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1412.6980},
+  note      = {Adaptive moments; defaults lr 0.001, betas (0.9, 0.999); our optimizer for both models}
+}
+
+@inproceedings{ioffe2015bn,
+  title     = {Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift},
+  author    = {Ioffe, Sergey and Szegedy, Christian},
+  booktitle = {Proc. Int. Conf. on Machine Learning (ICML)},
+  pages     = {448--456},
+  year      = {2015},
+  eprint    = {1502.03167},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1502.03167}
+}
+
+@inproceedings{yosinski2014transfer,
+  title     = {How Transferable Are Features in Deep Neural Networks?},
+  author    = {Yosinski, Jason and Clune, Jeff and Bengio, Yoshua and Lipson, Hod},
+  booktitle = {Adv. Neural Inf. Process. Syst. (NeurIPS) 27},
+  pages     = {3320--3328},
+  year      = {2014},
+  eprint    = {1411.1792},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1411.1792},
+  note      = {Lower layers general, higher layers task-specific; fine-tuning transferred features boosts generalization}
+}
+
+@article{srivastava2014dropout,
+  title   = {Dropout: A Simple Way to Prevent Neural Networks from Overfitting},
+  author  = {Srivastava, Nitish and Hinton, Geoffrey and Krizhevsky, Alex and Sutskever, Ilya and Salakhutdinov, Ruslan},
+  journal = {J. Mach. Learn. Res.},
+  volume  = {15},
+  number  = {1},
+  pages   = {1929--1958},
+  year    = {2014},
+  eprint  = {1207.0580},
+  archivePrefix = {arXiv},
+  url     = {https://arxiv.org/abs/1207.0580},
+  note    = {Randomly dropping units (p=0.5 dense) prevents co-adaptation; we use 0.25 conv blocks / 0.5 head}
+}
+
+@inproceedings{he2016resnet,
+  title     = {Deep Residual Learning for Image Recognition},
+  author    = {He, Kaiming and Zhang, Xiangyu and Ren, Shaoqing and Sun, Jian},
+  booktitle = {Proc. IEEE Conf. on Computer Vision and Pattern Recognition (CVPR)},
+  pages     = {770--778},
+  year      = {2016},
+  eprint    = {1512.03385},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1512.03385},
+  note      = {Residual skip connections enable 152-layer training; backbone family our method extends}
+}
+
+@inproceedings{tan2019efficientnet,
+  title     = {EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks},
+  author    = {Tan, Mingxing and Le, Quoc V.},
+  booktitle = {Proc. Int. Conf. on Machine Learning (ICML)},
+  year      = {2019},
+  eprint    = {1905.11946},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/1905.11946},
+  note      = {Compound scaling of depth/width/resolution; supported backbone alternative in our codebase}
+}
+
+@article{russakovsky2015imagenet,
+  title   = {ImageNet Large Scale Visual Recognition Challenge},
+  author  = {Russakovsky, Olga and Deng, Jia and Su, Hao and Krause, Jonathan and Satheesh, Sanjeev and Ma, Sean and Huang, Zhiheng and Karpathy, Andrej and Khosla, Aditya and Bernstein, Michael and Berg, Alexander C. and Fei-Fei, Li},
+  journal = {Int. J. Comput. Vis. (IJCV)},
+  volume  = {115},
+  number  = {3},
+  pages   = {211--252},
+  year    = {2015},
+  eprint  = {1409.0575},
+  archivePrefix = {arXiv},
+  url     = {https://arxiv.org/abs/1409.0575},
+  note    = {14M images / 21k synsets (1k ILSVRC); pre-training source that makes our transfer learning possible}
+}
+
+@incollection{zuiderveld1994clahe,
+  title     = {Contrast Limited Adaptive Histogram Equalization},
+  author    = {Zuiderveld, Karel},
+  booktitle = {Graphics Gems IV},
+  publisher = {Academic Press},
+  pages     = {474--485},
+  year      = {1994},
+  url       = {https://dl.acm.org/doi/10.5555/180895.180940},
+  note      = {CLAHE preprocessing used in GFDD24 (with unsharp masking); verified via ACM page + GraphicsGems clahe.c source}
+}
+
+@article{mostafa2021guava,
+  title   = {Guava Disease Detection Using Deep Convolutional Neural Networks: A Case Study of Guava Plants},
+  author  = {Mostafa, Ahmed M. and Kumar, Sanjay A. and Meraj, Talha and Rauf, Hafiz T. and Alnuaim, Abeer A. and Alkhayyal, Mashael A.},
+  journal = {Applied Sciences},
+  volume  = {12},
+  number  = {1},
+  pages   = {239},
+  year    = {2021},
+  doi     = {10.3390/app12010239},
+  url     = {https://www.mdpi.com/2076-3417/12/1/239},
+  note    = {321 guava images (5 classes) augmented to 2,889; ResNet-50 best 99.54\%; verified via MIET-2022 survey citing [14] + OpenAgriculture review ref 12 + Frontiers-2026 Table 4}
+}
+
+@article{doutoum2023guava,
+  title   = {Classification of Guava Leaf Disease Using Deep Learning},
+  author  = {Doutoum, A. S. and Eryigit, R. and Tugrul, B.},
+  journal = {WSEAS Trans. on Information Science and Applications},
+  volume  = {20},
+  pages   = {356--363},
+  year    = {2023},
+  doi     = {10.37394/23209.2023.20.38},
+  url     = {https://wseas.com/journals/isa/2023.php},
+  note    = {1,834 guava leaf images, 5 classes; EfficientNet-B3 94.93\% test accuracy; verified via SemanticScholar + Ankara Univ. publication list + Frontiers-2026 Table 4}
+}
+
+@inproceedings{nandi2022device,
+  title     = {Device-Friendly Guava Fruit and Leaf Disease Detection Using Deep Learning},
+  author    = {Nandi, Rabindra Nath and Palash, Aminul Haque and Siddique, Nazmul and Zilani, Mohammed Golam},
+  booktitle = {Proc. Int. Conf. on Machine Intelligence and Emerging Technologies (MIET)},
+  pages     = {49--59},
+  year      = {2022},
+  eprint    = {2209.12557},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2209.12557},
+  note      = {5 pretrained CNNs on guava fruit+leaf (681 originals + 8,525 augmented); EfficientNet 99\% (4.2 MB), quantized GoogLeNet 97\% (0.143 MB)}
+}
+
+@inproceedings{kilci2024squeezenet,
+  title     = {Classification of Guava Diseases Using Features Extracted From SqueezeNet With AdaBoost and Gradient Boosting},
+  author    = {Kilci, Murat and Koklu, Murat},
+  booktitle = {Proc. 4th Int. Conf. on Frontiers in Academic Research},
+  year      = {2024},
+  url       = {https://arxiv.org/html/2512.19989v1},
+  note      = {On GFDD24 (3,784 fruit images): SqueezeNet features + AdaBoost 82.7\%, Gradient Boosting 95.6\%; verified via arXiv:2512.19989 citing [3] + PMC12719609 Table 5}
+}
+
+@article{zhou2026guava,
+  title   = {Explainable Deep Learning-Based Comparative Study for Guava Fruit and Leaf Disease Classification: Advancing Agricultural Diagnostics Through AI},
+  author  = {Zhou, Zeyu},
+  journal = {Frontiers in Plant Science},
+  volume  = {17},
+  pages   = {1738585},
+  year    = {2026},
+  doi     = {10.3389/fpls.2026.1738585},
+  url     = {https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2026.1738585/full},
+  note    = {527 guava fruit+leaf images, 5 classes; 6 hybrid transfer combos; VGG16+MobileNetV2 best 96\% acc/P/R/F1 with Grad-CAM}
+}
+
+@article{maitlo2023guava,
+  title     = {A Novel Dataset of Guava Fruit for Grading and Classification},
+  author    = {Maitlo, Abdul Khalique and Aziz, Abdul and Raza, Hassnian and Abbas, Neelam},
+  journal   = {Data in Brief (via Mendeley Data w3fg8jjmzr)},
+  year      = {2023},
+  doi       = {10.17632/w3fg8jjmzr.1},
+  url       = {https://data.mendeley.com/datasets/w3fg8jjmzr/1},
+  note      = {2,309 guava fruit images (3 varieties x 3 maturity stages); grading task, not disease; related-dataset context}
+}
+
+@misc{ghosh2026inception,
+  title       = {Healthy Harvests: A Comparative Look at Guava Disease Classification Using InceptionV3},
+  author      = {Ghosh, Samanta and Anika, Shaila Afroz and Ahmed, Umma Habiba and Alam, B. M. Shahria and Noor, Mohammad Tahmid and Niloy, Nishat Tasnim},
+  year        = {2026},
+  eprint      = {2602.10967},
+  archivePrefix = {arXiv},
+  url         = {https://arxiv.org/abs/2602.10967},
+  note        = {InceptionV3 comparative baseline on GFDD24 (473 originals, Anthracnose/Fruit Flies/Healthy); preprint}
+}
+
+@article{resnet101guava2025,
+  title   = {Automated Guava Disease Detection Using Transfer Learning With ResNet-101},
+  author  = {{PMC12719609 authors}},
+  journal = {PeerJ / PMC (see record)},
+  year    = {2025},
+  url     = {https://pmc.ncbi.nlm.nih.gov/articles/PMC12719609},
+  note    = {Transfer ResNet-101 + Grad-CAM on GFDD24 (Anthracnose/Fruit Fly/Healthy): 98.48\% accuracy; compares Doutoum 2023, Kilci-Koklu 2024 in Table 5}
+}
+
+@misc{cnnGBensemble2025,
+  title       = {A Novel CNN Gradient Boosting Ensemble for Guava Disease Detection},
+  year        = {2025},
+  eprint      = {2512.19989},
+  archivePrefix = {arXiv},
+  url         = {https://arxiv.org/abs/2512.19989},
+  note        = {EfficientNet-B0 features + RF/AdaBoost/LightGBM/XGBoost cascade on GFDD24; claimed approx 99.99\%; Dec 2025 preprint — near-perfect leaked-split score supports leakage thesis}
+}
+

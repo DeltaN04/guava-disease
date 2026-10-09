@@ -62,3 +62,26 @@
   we report it AND a `Dataset_leakfree/` re-split (cluster-grouped 70/20/10,
   seed 42) per the brief. Val total is 755 on disk vs 775 in the release
   notes (train 2647 and test 382 match); reported as a discrepancy.
+
+## D8. Train/val skew bugfix: RandomBrightness/Contrast value_range (Phase 2/3)
+- Symptom (9 Oct 2026): `custom_base` stuck at val_acc 0.35-0.45 for 10
+  epochs, test acc 0.4450 / macroF1 0.285, confusion matrix collapsed
+  (148/110/94 predicted Anthracnose, 0 Healthy). Train loss 1.60->1.15
+  never beat random-guess 1.099. EarlyStopping (val_loss, patience 8)
+  halted at epoch 10.
+- Root cause: pipeline rescales to [0, 1] *before* augmenting, but
+  `RandomContrast` / `RandomBrightness` default to `value_range=(0, 255)`
+  in TF 2.21. Brightness delta = factor x 255 ~= 25.5, so train batches
+  spanned [0, ~24] while val/test stayed [0, 1]. Verified live:
+  `rescaled 0.0-1.0 -> augmented 0.0-23.63`, culprit isolated to
+  `RandomBrightness`. Fix: `value_range=(0, 1)` on both layers in
+  `data_pipeline.augmentation_layers()` (see docstring there).
+- Consequence: all pre-fix checkpoints/logs (`custom_base` 10-epoch run)
+  are INVALID (train/val distribution mismatch). Moved to
+  `outputs/models_buggy/` for provenance, deleted from `outputs/models/`
+  and `outputs/logs/`, and restarted training from scratch. Smoke after
+  fix (64 imgs, 2 epochs): custom train acc 0.53-0.56 (was 0.34),
+  transfer val_acc 0.83 — learning restored. Full `train.py --model both`
+  relaunched 9 Oct ~23:20 IST (background, CPU, ~4-5 h expected).
+- Also added missing `jinja2` to `requirements.txt` (pandas `to_latex`
+  via Styler needs it; `evaluate.py` crashed without it).

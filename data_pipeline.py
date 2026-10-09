@@ -28,14 +28,24 @@ def set_seeds(seed: int = config.SEED) -> None:
 
 
 def augmentation_layers(seed: int = config.SEED) -> tf.keras.Sequential:
-    """Stochastic training-only augmentation block (runs on GPU/CPU in-graph)."""
+    """Stochastic training-only augmentation block (runs on GPU/CPU in-graph).
+
+    NOTE (bugfix 9 Oct 2026): ``RandomContrast`` / ``RandomBrightness``
+    default to ``value_range=(0, 255)``. Our pipeline rescales to [0, 1]
+    *before* augmenting, so the defaults added up to ~25.5 brightness,
+    blowing train inputs to [0, ~24] while val/test stayed [0, 1].
+    That train/val skew collapsed training to majority-class guessing
+    (custom_base test acc 0.445). Fixed with ``value_range=(0, 1)``.
+    """
     return tf.keras.Sequential(
         [
             tf.keras.layers.RandomFlip("horizontal_and_vertical", seed=seed),
             tf.keras.layers.RandomRotation(0.15, seed=seed),
             tf.keras.layers.RandomZoom(0.15, seed=seed),
-            tf.keras.layers.RandomContrast(0.1, seed=seed),
-            tf.keras.layers.RandomBrightness(0.1, seed=seed),
+            tf.keras.layers.RandomContrast(0.1, value_range=(0, 1), seed=seed),
+            tf.keras.layers.RandomBrightness(
+                0.1, value_range=(0, 1), seed=seed
+            ),
         ],
         name="train_augmentation",
     )

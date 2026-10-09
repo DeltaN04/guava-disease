@@ -4,11 +4,11 @@
 |---|---|---|
 | 0 Recon + setup | DONE | macOS 25.5 arm64, Py3.12, TF 2.21 CPU-only, Tectonic 0.17.0; venv + requirements installed; dataset staged at `Dataset/` |
 | 1 Dataset audit | DONE | 3784 files, 0 corrupt, all 512x512 RGB PNG; val=755 on disk vs 775 expected (discrepancy reported); **leakage: 100% of val+test share an original with train (454/473 originals span splits)**; `Dataset_leakfree/` built; figs in `outputs/audit/` |
-| 2 Implementation + smoke test | DONE | custom CNN + MobileNetV2 transfer (two-phase) implemented; 1-epoch smoke on 64 files: custom val_acc 0.465, transfer val_acc 0.336; save/reload parity True for both; fine-tune unfreezing OK (1839427/2586691 trainable) |
-| 3 Experiments | TODO | — |
-| 4 Evaluation + analysis | TODO | — |
-| 5 Research survey | TODO | — |
-| 6 Beamer slides | TODO | — |
+| 2 Implementation + smoke test | DONE (bugfix 9 Oct) | custom CNN + MobileNetV2 transfer (two-phase) implemented; **train/val skew bug found+fixed** (`value_range=(0,1)`, see D8); post-fix smoke (64 imgs, 2 epochs): custom train acc 0.53-0.56, transfer val_acc 0.83; save/reload parity True; fine-tune OK (1839427/2586691 trainable) |
+| 3 Experiments | IN PROGRESS (restarted post-fix) | pre-fix `custom_base` INVALID (10 epochs, test 0.445/collapsed, moved to `outputs/models_buggy/`); full `train.py --model both` relaunched ~23:20 IST post-fix (custom 40 epochs + transfer 15+20, CPU ~4-5 h, background sh_121c040ac001Nxl7MdsyjRzNG3); ablations queued after |
+| 4 Evaluation + analysis | TODO (partial) | `evaluate.py` ran on buggy ckpt (test 0.4450/macroF1 0.285/AUC 0.656, cm collapse documented); also crashed on missing `jinja2` (fixed in requirements); full rerun blocked on Phase 3 checkpoints |
+| 5 Research survey | IN PROGRESS | 12 core refs + 5 guava leads verified live (Mostafa 2021, Doutoum 2023, Nandi 2022, Kilci/Koklu 2024 verified; Pratama 2025 DROPPED unverifiable); expanding `survey.md` table to 12-13 disease papers + foundational |
+| 6 Beamer slides | IN PROGRESS | skeleton `report/slides.tex` (Tectonic-safe, conditional figures); audit figs included, results slots filled after Phase 4 |
 | 7 Final QA + handoff | TODO | — |
 
 ## Phase 0 detail
@@ -22,3 +22,11 @@
   (tensorflow 2.21.0, numpy 2.5.3, pandas 3.0.6, matplotlib 3.11.2,
   seaborn 0.13.2, scikit-learn 1.9.1, pillow 12.3.0, ImageHash 4.3.2,
   tqdm 4.70.1). Tectonic binary in `bin/`.
+
+## Phase 3 detail (live)
+- `custom_base` started 21:57 IST; epoch 1: loss 1.6024, acc 0.3476,
+  val_loss 1.5664, val_acc 0.3470, val_auc 0.5874. Checkpoint saved
+  (`outputs/models/custom_base.keras`, 14 MB). Pace ~169 s/epoch.
+- Plan (sequential): custom_base -> transfer_MobileNetV2_base (15 head + 20 FT)
+  -> frozen + noaug + leakfree ablations -> evaluate -> Grad-CAM -> figures.
+

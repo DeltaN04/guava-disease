@@ -7,3 +7,4 @@ scikit-learn
 pillow
 ImageHash
 tqdm
+jinja2
