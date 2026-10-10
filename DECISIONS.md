@@ -108,3 +108,15 @@
   → best val_acc **0.9126** (ep 4, train 0.917/val_loss 0.237),
   train/val track together, save/reload parity True. Full
   `train.py --model both` relaunched post-fix (background).
+
+## D10. Overnight leakfree-custom death + partial control (Phase 3, 10 Oct)
+- The queued `train.py --model both --data-dir Dataset_leakfree --tag
+  leakfree` died silently at custom epoch 17/40 (no traceback; likely Mac
+  sleep; no `_meta.json` written). Best ckpt `custom_leakfree.keras`
+  (ep 15, val 0.9737) survives and is usable.
+- Given the 2-hour morning deadline, scope: evaluate the surviving
+  custom-leakfree ckpt as a *partial* control (stated as interrupted
+  17/40, longer-trained than released-A so not strictly comparable),
+  train transfer-leakfree fully (15+20, ~15 min, fast), and report both
+  plainly in `outputs/results/analysis.md` and slides. No re-run of the
+  3.7h custom-leakfree job.

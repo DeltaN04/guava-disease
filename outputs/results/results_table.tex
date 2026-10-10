@@ -1,0 +1,12 @@
+\begin{tabular}{lcccccccccc}
+\toprule
+Model & Test acc & Macro P & Macro R & Macro F1 & Macro AUC & Val acc & Params & Trainable & Train time & Test set \\
+\midrule
+A: Custom CNN & 0.911000 & 0.927900 & 0.918100 & 0.917300 & 0.994900 & 0.936400 & 1243683 & 1241251 & 31.6 min & released (382, leaked) \\
+B: MobileNetV2 TL & 0.992100 & 0.990500 & 0.991800 & 0.991100 & 0.999900 & 0.996000 & 2586691 & 1839427 & 14.5 min & released (382, leaked) \\
+B frozen (no FT) & 0.994800 & 0.993100 & 0.995300 & 0.994200 & 0.999900 & 0.990700 & 2586691 & 328707 & 6.2 min & released (382, leaked) \\
+B no-augment & 0.994800 & 0.994400 & 0.994900 & 0.994600 & 0.999900 & 0.997400 & 2586691 & 1839427 & 13.1 min & released (382, leaked) \\
+A leak-free (partial) & 0.992300 & 0.992800 & 0.993800 & 0.993200 & 1.000000 & 0.973700 & 1243683 & 1241251 & ~93 min* & leak-free (392) \\
+B leak-free & 0.987200 & 0.987100 & 0.987700 & 0.987200 & 1.000000 & 0.985500 & 2586691 & 1839427 & 11.2 min & leak-free (392) \\
+\bottomrule
+\end{tabular}

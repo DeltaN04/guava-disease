@@ -1,0 +1,48 @@
+{
+  "run": "transfer_MobileNetV2_noaug",
+  "test_accuracy": 0.9947643979057592,
+  "macro_precision": 0.9943680858196448,
+  "macro_recall": 0.9949494949494949,
+  "macro_f1": 0.9946268395812737,
+  "macro_auc": 0.999947929469465,
+  "per_class": {
+    "Anthracnose": {
+      "precision": 0.9936305732484076,
+      "recall": 1.0,
+      "f1": 0.9968051118210862,
+      "auc": 0.999971636033583,
+      "support": 156
+    },
+    "fruit_fly": {
+      "precision": 1.0,
+      "recall": 0.9848484848484849,
+      "f1": 0.9923664122137404,
+      "auc": 0.9999090909090909,
+      "support": 132
+    },
+    "healthy_guava": {
+      "precision": 0.9894736842105263,
+      "recall": 1.0,
+      "f1": 0.9947089947089947,
+      "auc": 0.999963061465721,
+      "support": 94
+    }
+  },
+  "confusion_matrix": [
+    [
+      156,
+      0,
+      0
+    ],
+    [
+      1,
+      130,
+      1
+    ],
+    [
+      0,
+      0,
+      94
+    ]
+  ]
+}

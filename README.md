@@ -20,6 +20,24 @@ Dataset: copy the released `GuavaDiseaseDataset/{train,val,test}/` folders
 (class subfolders `Anthracnose/`, `fruit_fly/`, `healthy_guava/`) to
 `./Dataset/`. (Already staged in this repo's working copy.)
 
+## Headline results (test, seed 42 — from executed runs, see `outputs/results/`)
+
+| Model | Test acc | Macro F1 | Val acc |
+|---|---|---|---|
+| A custom CNN | 0.9110 | 0.9173 | 0.9364 |
+| B MobileNetV2 TL | 0.9921 | 0.9911 | 0.9960 |
+| B frozen (no FT) | 0.9948 | 0.9942 | 0.9907 |
+| B no-augment | 0.9948 | 0.9946 | 0.9974 |
+
+Leakage: 454/473 originals span splits; 100% of val/test share an original
+with train (`outputs/audit/`). Leak-free control in `Dataset_leakfree/`
+(see `outputs/results/analysis.md` for the honest partial-control numbers).
+
+Two training bugs were found and fixed (see `DECISIONS.md` D8-D9):
+augmentation `value_range=(0,1)` and custom-CNN BatchNorm `momentum=0.9`.
+Single seed 42 (no multi-seed stats) and 224px CPU fallback are stated
+scope cuts.
+
 ## Run each stage
 
 ```bash

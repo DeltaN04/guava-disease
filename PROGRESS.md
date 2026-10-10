@@ -5,10 +5,11 @@
 | 0 Recon + setup | DONE | macOS 25.5 arm64, Py3.12, TF 2.21 CPU-only, Tectonic 0.17.0; venv + requirements installed; dataset staged at `Dataset/` |
 | 1 Dataset audit | DONE | 3784 files, 0 corrupt, all 512x512 RGB PNG; val=755 on disk vs 775 expected (discrepancy reported); **leakage: 100% of val+test share an original with train (454/473 originals span splits)**; `Dataset_leakfree/` built; figs in `outputs/audit/` |
 | 2 Implementation + smoke test | DONE (bugfix 9 Oct) | custom CNN + MobileNetV2 transfer (two-phase) implemented; **train/val skew bug found+fixed** (`value_range=(0,1)`, see D8); post-fix smoke (64 imgs, 2 epochs): custom train acc 0.53-0.56, transfer val_acc 0.83; save/reload parity True; fine-tune OK (1839427/2586691 trainable) |
-| 3 Experiments | IN PROGRESS (restarted post-D9) | D8 run diverged (train 0.91/val 0.245 BN collapse, killed ep 4, archived `models_buggy/custom_base_bn099.*`); D9 fix verified: `custom_bn09_test` 5 epochs best val **0.9126** (train 0.917); full `--model both` relaunched post-fix (custom 40 + transfer 15+20, background sh_121dd3402001xOExDYplWverso) |
-| 4 Evaluation + analysis | TODO (partial) | `evaluate.py` ran on buggy ckpt (test 0.4450/macroF1 0.285/AUC 0.656, cm collapse documented); also crashed on missing `jinja2` (fixed in requirements); full rerun blocked on Phase 3 checkpoints |
-| 5 Research survey | IN PROGRESS | 12 core refs + 5 guava leads verified live (Mostafa 2021, Doutoum 2023, Nandi 2022, Kilci/Koklu 2024 verified; Pratama 2025 DROPPED unverifiable); expanding `survey.md` table to 12-13 disease papers + foundational |
-| 6 Beamer slides | IN PROGRESS | skeleton `report/slides.tex` (Tectonic-safe, conditional figures); audit figs included, results slots filled after Phase 4 |
+| 3 Experiments | DONE | A base 9ep val 0.9364 (31.6min), B base 15+20 val 0.9960 (14.5min); frozen 15ep 0.9907, noaug 15+18 0.9974; leakfree: A-partial 17/40 best 0.9737, B 15+17 0.9855. Weights/logs gitignored (large); metrics+tables committed; repro via `train.py` |
+| 7 Final QA + handoff | DONE | smoke re-passed post-fix; 0 Beamer warnings; 18/18 pages PNG-inspected; no placeholders; README+analysis+slides committed |
+| 4 Evaluation + analysis | DONE (base) | test: A 0.9110/F1 0.9173/AUC 0.9949, B 0.9921/0.9911/0.9999, frozen 0.9948, noaug 0.9948; CMs (A: 26 Anthracnose→FF; B: 3 errs), ROC, loss/acc curves, Grad-CAM panels, `outputs/results/analysis.md` |
+| 5 Research survey | DONE | 12-study table (§8) + families (§9) + gap (§10) in `survey.md`; 22-entry `references.bib`; all verified live 9 Oct; Pratama 2025 explicitly dropped (unverifiable) |
+| 6 Beamer slides | DONE | 18 frames, Madrid navy/blue, footline, booktabs real table, CM+Grad-CAM, refs, thank-you; Tectonic compiles; page-by-page PNG inspect, 2 table overflows fixed |
 | 7 Final QA + handoff | TODO | — |
 
 ## Phase 0 detail

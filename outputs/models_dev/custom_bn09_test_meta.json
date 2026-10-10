@@ -1,0 +1,12 @@
+{
+  "run": "custom_bn09_test",
+  "model": "custom_cnn",
+  "epochs_run": 5,
+  "best_val_accuracy": 0.9125827550888062,
+  "train_seconds": 1038.8,
+  "total_params": 1243683,
+  "trainable_params": 1241251,
+  "save_reload_parity": true,
+  "seed": 42,
+  "img_size": 224
+}

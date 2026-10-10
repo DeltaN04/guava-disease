@@ -1,0 +1,12 @@
+{
+  "run": "custom_base",
+  "model": "custom_cnn",
+  "epochs_run": 10,
+  "best_val_accuracy": 0.4463576078414917,
+  "train_seconds": 1941.9,
+  "total_params": 1243683,
+  "trainable_params": 1241251,
+  "save_reload_parity": true,
+  "seed": 42,
+  "img_size": 224
+}
