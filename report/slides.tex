@@ -164,17 +164,24 @@
 \end{frame}
 % 13 Results
 \begin{frame}{Results (test 382, seed 42) --- every number from executed runs}
-  \footnotesize
-  \begin{tabular}{lcccc}
-    \toprule
-    Model & Test & Macro F1 & Val & Time \\
-    \midrule
-    A: Custom CNN & 0.9110 & 0.9173 & 0.9364 & 31.6 min \\
-    B: MobileNetV2 TL & 0.9921 & 0.9911 & 0.9960 & 14.5 min \\
-    B frozen (no FT) & 0.9948 & 0.9942 & 0.9907 & 6.2 min \\
-    B no-augment & 0.9948 & 0.9946 & 0.9974 & 13.1 min \\
-    \bottomrule
-  \end{tabular}
+  \begin{columns}
+    \begin{column}{0.52\textwidth}
+      \footnotesize
+      \begin{tabular}{lccc}
+        \toprule
+        Model & Test & F1 & Val \\
+        \midrule
+        A: Custom CNN & 0.9110 & 0.9173 & 0.9364 \\
+        B: MobileNetV2 & 0.9921 & 0.9911 & 0.9960 \\
+        B frozen & 0.9948 & 0.9942 & 0.9907 \\
+        B no-augment & 0.9948 & 0.9946 & 0.9974 \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \includegraphics[width=\linewidth]{../outputs/plots/loss_curves.png}
+    \end{column}
+  \end{columns}
   \begin{itemize}
     \item B beats A by $\sim$8pp; frozen/noaug match full B on leaked split (head suffices; release aug covers variation). Leak-free: A-control 0.9923 (partial ckpt), B-control 0.9872 --- no visible inflation (task saturates).
   \end{itemize}
