@@ -1,7 +1,2 @@
-Model,Test acc,Macro P,Macro R,Macro F1,Macro AUC,Val acc,Params,Trainable,Train time,Test set
-A: Custom CNN,0.911,0.9279,0.9181,0.9173,0.9949,0.9364,1243683,1241251,31.6 min,"released (382, leaked)"
-B: MobileNetV2 TL,0.9921,0.9905,0.9918,0.9911,0.9999,0.996,2586691,1839427,14.5 min,"released (382, leaked)"
-B frozen (no FT),0.9948,0.9931,0.9953,0.9942,0.9999,0.9907,2586691,328707,6.2 min,"released (382, leaked)"
-B no-augment,0.9948,0.9944,0.9949,0.9946,0.9999,0.9974,2586691,1839427,13.1 min,"released (382, leaked)"
-A leak-free (partial),0.9923,0.9928,0.9938,0.9932,1.0,0.9737,1243683,1241251,~93 min*,leak-free (392)
-B leak-free,0.9872,0.9871,0.9877,0.9872,1.0,0.9855,2586691,1839427,11.2 min,leak-free (392)
+Model,Test set,Test acc,Macro P,Macro R,Macro F1,Macro AUC,Val acc,Params,Trainable,Train time
+"A: Custom CNN (fixed, leak-free)",Dataset_leakfree,0.9923,0.9928,0.9938,0.9932,1.0,0.9737,1243683,1241251,144.7 min

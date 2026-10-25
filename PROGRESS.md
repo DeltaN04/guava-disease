@@ -10,7 +10,7 @@
 | 5 Research survey | DONE | 12-study table + families + gap in `survey.md`; 22-entry `references.bib`; all verified live; Pratama 2025 re-verified via Crossref 25 Oct 2026 (D15) |
 | 6 First Beamer deck | DONE (superseded) | 18 frames, Madrid navy/blue, 0 warnings, page-by-page PNG inspection; kept as `slides.tex/pdf` |
 | 7 Final QA (old deck) | DONE | smoke re-passed; no placeholders; README/analysis/slides committed at `d72a501` |
-| 8 Final experiments (branch `final-experiments`) | IN PROGRESS | Task 1 fixed A (15-epoch released; leak-free resume 16→25); E1–E4 grid on leak-free val; E5 Adam/SGD/cosine (8 epochs); E6 seeds 42/43/44; per-image preds + stats; E5 AdamW/RMSprop cut (D13) |
+| 8 Final experiments (branch `final-experiments`) | IN PROGRESS | Task 1 fixed A done: released **0.9634**, leak-free **0.9923**; E1 done (AdamW best 0.9829); E2 done (ref/FT 1e-4 best 0.9789); E3 done (unfreeze-all 0.9829); E4 done (EfficientNetB0 **0.9908**, ResNet50 0.9750); E5 done (Adam 0.9579, cosine 0.9553, SGD 0.9539); E6 B done (test 0.9949/0.9898/1.0000, mean 0.9949); E6 A uses fixed-A protocol, seeds 43/44 training (D19); per-image preds + stats next |
 | 9 Report + rubric + final QA | IN PROGRESS | `report/report.tex`, `report/slides_rubric.tex`, `RUBRIC_MAP.md`; compile + page inspection after E6 |
 
 ## Environment
@@ -26,5 +26,6 @@
   metrics, tables and figures are committed.
 - `train.py` skips a run when its meta+best checkpoint exist; use `--force`
   only for an intentional rerun.
-- Experiment commands: `scripts/run_b_grid.sh` (E1–E4), `scripts/run_e5.sh`
-  (E5), and the Task-1/E6 commands documented in `RUBRIC_MAP.md`.
+- Experiment commands: `scripts/run_b_grid.sh` (E1), the parallel
+  `scripts/run_b_grid_parallel.sh` (E2–E4, D17), `scripts/run_e5.sh` (E5),
+  and the Task-1/E6 commands documented in `RUBRIC_MAP.md`.

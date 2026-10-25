@@ -1,0 +1,117 @@
+{
+  "runs": {
+    "custom_leakfree": {
+      "accuracy": 0.9923469387755102,
+      "accuracy_boot_ci95": [
+        0.9821428571428571,
+        1.0
+      ],
+      "macro_f1": 0.9932090622311444,
+      "macro_f1_boot_ci95": [
+        0.9846275078321257,
+        1.0
+      ],
+      "n": 392,
+      "correct": 389,
+      "accuracy_wilson_ci95": [
+        0.9777435590450763,
+        0.9973939707143022
+      ],
+      "test_set": "Dataset_leakfree"
+    },
+    "transfer_MobileNetV2_leakfree": {
+      "accuracy": 0.9872448979591837,
+      "accuracy_boot_ci95": [
+        0.9744897959183674,
+        0.9974489795918368
+      ],
+      "macro_f1": 0.9872254013975302,
+      "macro_f1_boot_ci95": [
+        0.97439753309709,
+        0.9971281234448764
+      ],
+      "n": 392,
+      "correct": 387,
+      "accuracy_wilson_ci95": [
+        0.97049258748628,
+        0.9945398901512397
+      ],
+      "test_set": "Dataset_leakfree"
+    },
+    "transfer_MobileNetV2_frozen": {
+      "accuracy": 0.9947643979057592,
+      "accuracy_boot_ci95": [
+        0.9869109947643979,
+        1.0
+      ],
+      "macro_f1": 0.9941519895860346,
+      "macro_f1_boot_ci95": [
+        0.9852794675677214,
+        1.0
+      ],
+      "n": 382,
+      "correct": 380,
+      "accuracy_wilson_ci95": [
+        0.9811135711558283,
+        0.9985630629862654
+      ],
+      "test_set": "Dataset"
+    },
+    "transfer_MobileNetV2_noaug": {
+      "accuracy": 0.9947643979057592,
+      "accuracy_boot_ci95": [
+        0.9869109947643979,
+        1.0
+      ],
+      "macro_f1": 0.9946268395812737,
+      "macro_f1_boot_ci95": [
+        0.9862528463969379,
+        1.0
+      ],
+      "n": 382,
+      "correct": 380,
+      "accuracy_wilson_ci95": [
+        0.9811135711558283,
+        0.9985630629862654
+      ],
+      "test_set": "Dataset"
+    }
+  },
+  "pairs": [
+    {
+      "a": "custom_leakfree",
+      "b": "transfer_MobileNetV2_leakfree",
+      "test_set": "Dataset_leakfree",
+      "accuracy_a": 0.9923469387755102,
+      "accuracy_b": 0.9872448979591837,
+      "delta_b_minus_a": -0.005102040816326481,
+      "delta_images": 1.9999999999999805,
+      "verdict": "within noise at alpha=0.05",
+      "n_pairs": 392,
+      "a_correct_b_wrong": 5,
+      "a_wrong_b_correct": 3,
+      "discordant": 8,
+      "mcnemar_chi2": 0.125,
+      "p_exact": 0.7265625,
+      "p_chi2_continuity": 0.7236736098317629
+    },
+    {
+      "a": "transfer_MobileNetV2_frozen",
+      "b": "transfer_MobileNetV2_noaug",
+      "test_set": "Dataset",
+      "accuracy_a": 0.9947643979057592,
+      "accuracy_b": 0.9947643979057592,
+      "delta_b_minus_a": 0.0,
+      "delta_images": 0.0,
+      "verdict": "within noise at alpha=0.05",
+      "n_pairs": 382,
+      "a_correct_b_wrong": 1,
+      "a_wrong_b_correct": 1,
+      "discordant": 2,
+      "mcnemar_chi2": 0.5,
+      "p_exact": 1.0,
+      "p_chi2_continuity": 0.47950012218695337
+    }
+  ],
+  "seed_groups": {}
+}

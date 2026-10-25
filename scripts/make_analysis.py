@@ -48,7 +48,7 @@ def main() -> None:
     stats_path = config.RESULTS_DIR / "stats.json"
     stats = json.loads(stats_path.read_text()) if stats_path.exists() else {}
 
-    final = ["custom_final-s42", "transfer_MobileNetV2_final-s42"]
+    final = ["custom_final-s42", "transfer_EfficientNetB0_final-s42"]
     lines = ["# Error analysis (generated from metrics JSON)", "",
              "Source: `outputs/results/*_metrics.json`, "
              "`outputs/results/experiments.csv`, `outputs/results/stats.json`. "

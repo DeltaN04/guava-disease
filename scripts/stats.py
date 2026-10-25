@@ -228,7 +228,11 @@ def main() -> None:
     ax.bar(x, accs, yerr=[lo, hi], capsize=4, color="#2E75B6")
     for i, v in enumerate(accs):
         ax.text(i, min(1.01, v + 0.012), f"{v:.3f}", ha="center", fontsize=8)
-    ax.set_xticks(x, runs, rotation=25, ha="right", fontsize=8)
+    def _short(run: str) -> str:
+        return (run.replace("custom_final-s", "A s")
+                   .replace("transfer_EfficientNetB0_final-s", "B s")
+                   .replace("__released", " (rel)"))
+    ax.set_xticks(x, [_short(r) for r in runs], rotation=0, fontsize=8)
     ax.set_ylim(max(0.0, min(accs) - 0.05), 1.02)
     ax.set_ylabel("Test accuracy")
     ax.set_title("Final runs: accuracy with 95% bootstrap CI")

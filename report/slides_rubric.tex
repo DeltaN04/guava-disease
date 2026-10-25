@@ -28,7 +28,7 @@
 \usepackage{booktabs}
 \graphicspath{{../outputs/audit/}{../outputs/plots/}{../outputs/results/}}
 \title{Guava Fruit Disease Classification}
-\subtitle{A leak-free comparison of a custom CNN and two-phase MobileNetV2 transfer learning}
+\subtitle{A leak-free comparison of a custom CNN and two-phase EfficientNetB0 transfer learning}
 \author{Nihar Ranjan Mishra \and Aaviraj Nikumbh \and Neel Lakhani}
 \institute{Course project --- seeds 42/43/44; CPU-only build (224px)}
 \date{October 2026}
@@ -62,8 +62,8 @@
           Healthy} and compare two honest baselines:
       \begin{itemize}
         \item \textbf{Model A}: compact CNN from scratch (1.24M params).
-        \item \textbf{Model B}: ImageNet MobileNetV2 + two-phase transfer
-              (2.59M params).
+        \item \textbf{Model B}: ImageNet EfficientNetB0 + two-phase transfer
+              (4.38M params; MobileNetV2 is the reference backbone).
       \end{itemize}
     \item The released GFDD24 split is \textbf{leaked}: 100\% of val/test
           images share a source original with train. We quantify it and build
@@ -189,15 +189,18 @@
   \end{block}
 \end{frame}
 % 10
-\begin{frame}{Model B: two-phase MobileNetV2 transfer}
+\begin{frame}{Model B: two-phase ImageNet transfer}
   \begin{itemize}
-    \item ImageNet MobileNetV2 (no top) $\to$ GAP $\to$ Dense 256 $\to$
-          Dropout 0.4 $\to$ Softmax; 2.59M params.
-    \item \textbf{Phase 1}: backbone frozen, train head (8 epochs in the grid;
-          15 in the original protocol).
-    \item \textbf{Phase 2}: unfreeze last 30 non-BN layers, fine-tune at a
-          lower LR (8 epochs in the grid; 20 originally). BN stays frozen.
-    \item Input: $[0,1]\to[-1,1]$ for MobileNetV2. EfficientNetB0 uses
+    \item Final: ImageNet EfficientNetB0 (no top) $\to$ GAP $\to$ Dense 256
+          $\to$ Dropout 0.4 $\to$ Softmax; 4.38M params, 0.33M trainable at
+          the selected checkpoint. MobileNetV2 (2.59M) is the reference.
+    \item \textbf{Phase 1}: backbone frozen, train head (6 epochs in E4; 8 in
+          E1--E3). \textbf{Phase 2}: unfreeze last 30 non-BN layers, fine-tune
+          at a lower LR (6 epochs in E4; 8 in E1--E3). BN stays frozen.
+    \item EfficientNetB0 E4 best checkpoint is from phase 1: fine-tuning did
+          not improve it, so the final model is a frozen feature extractor
+          plus the head.
+    \item Input: $[0,1]\to[-1,1]$ for MobileNetV2; EfficientNetB0 uses
           $[0,255]$ because its own first layers rescale; ResNet50 uses an
           approximate RGB mean-subtraction (no BGR flip), stated where used.
   \end{itemize}
@@ -273,8 +276,9 @@
   \includegraphics[width=0.88\textwidth]{lr_sensitivity.png}
   \vspace{1mm}
   \begin{itemize}
-    \item One factor at a time; reference is Adam head $10^{-3}$ / FT $10^{-5}$.
-    \item The selected setting is carried into E3/E4 and E6.
+    \item One factor at a time; reference is the matched 6+6 Adam run.
+    \item No learning-rate setting beat the reference (0.9789); the defaults
+          are carried into E3/E4.
   \end{itemize}
 \end{frame}
 % 16
@@ -300,9 +304,10 @@
   \input{../outputs/results/e5_table.tex}
   \vspace{2mm}
   \begin{itemize}
-    \item 12-epoch cap; AdamW and RMSprop cut for CPU time and recorded in
-          \texttt{DECISIONS.md} (D13).
-    \item The winner (with E1--E4's Model B winner) goes to E6.
+    \item 8-epoch budget (task cap 12); AdamW and RMSprop cut for CPU time
+          and recorded in \texttt{DECISIONS.md} (D13).
+    \item Adam wins narrowly (0.9579 vs cosine 0.9553 and SGD 0.9539); the
+          8-epoch winner was undertrained, so E6 uses the fixed-A protocol (D19).
   \end{itemize}
 \end{frame}
 % 18
@@ -317,30 +322,29 @@
 \end{frame}
 % 19
 \begin{frame}{Confidence intervals and paired tests}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \includegraphics[width=\linewidth]{accuracy_ci.png}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \scriptsize
-      \input{../outputs/results/stats_table.tex}
-    \end{column}
-  \end{columns}
-  \vspace{2mm}
+  \centering
+  \includegraphics[width=0.64\textwidth]{accuracy_ci.png}
+  \vspace{1mm}
+
+  \scriptsize
+  \input{../outputs/results/stats_table.tex}
+  \vspace{1mm}
   \begin{itemize}
     \item Bootstrap 95\% CI, 2,000 resamples; exact McNemar on identical test
           images; non-significant differences are called noise.
   \end{itemize}
 \end{frame}
 % 20
-\begin{frame}{Released vs leak-free: how large is the inflation?}
+\begin{frame}{Released vs leak-free: structural leakage, not a simple inflation}
   \begin{itemize}
     \item Released split: 100\% of val/test share an original with train.
     \item Leak-free split: 0/473 clusters span splits.
-    \item Both scores are reported for every final run; no run is compared
-          against a run trained for a different number of epochs.
-    \item The honest deployment estimate is the leak-free number; the
-          released number measures near-duplicate recognition.
+    \item Both scores are reported for every final run with the same
+          training budget; released and leak-free test sets differ in
+          difficulty and class composition.
+    \item The duplicate audit proves the released split is invalid for
+          deployment estimates; it does not guarantee that the released
+          aggregate score is higher. The leak-free number is the valid one.
   \end{itemize}
   \begin{block}{What we do not claim}
     The leak-free split is a control, not a new orchard: it removes
@@ -357,7 +361,7 @@
     \end{column}
     \begin{column}{0.49\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{transfer_MobileNetV2_final-s42_cm.png}
+      \includegraphics[width=\linewidth]{transfer_EfficientNetB0_final-s42_cm.png}
       \small Model B, seed 42
     \end{column}
   \end{columns}
@@ -371,12 +375,13 @@
 % 22
 \begin{frame}{Qualitative: Grad-CAM}
   \centering
-  \includegraphics[width=0.87\textwidth]{gradcam_transfer_MobileNetV2_final-s42_contact_sheet.png}
+  \includegraphics[width=0.87\textwidth]{gradcam_transfer_EfficientNetB0_final-s42_compact.png}
   \vspace{1mm}
   \begin{itemize}
     \item Predicted-class CAM; each heatmap normalised to $[0,1]$ with an
           all-zero guard; unused axes off.
-    \item Top row of each block: correct; bottom row: misclassified.
+    \item Top row: one correct example per class; bottom row: misclassified
+          examples; model label is in the panel title.
   \end{itemize}
 \end{frame}
 % 23

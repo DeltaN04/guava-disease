@@ -22,6 +22,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 import numpy as np
 import tensorflow as tf
 
@@ -72,6 +73,18 @@ def render_panel(img: np.ndarray, cam: np.ndarray, title: str,
     ax.axis("off")
 
 
+def render_compact_pair(img: np.ndarray, cam: np.ndarray, title: str,
+                        ax: plt.Axes) -> None:
+    """Original | jet-normalised CAM overlay, compact enough for a report."""
+    cam_up = np.array(
+        tf.image.resize(cam[..., None], img.shape[:2]).numpy())[..., 0]
+    heat = plt.cm.jet(cam_up)[..., :3]
+    overlay = np.clip(0.55 * img + 0.45 * heat, 0, 1)
+    ax.imshow(np.concatenate([img, overlay], axis=1))
+    ax.set_title(title, fontsize=7.5)
+    ax.axis("off")
+
+
 def main() -> None:
     """Generate Grad-CAM panels for correct + misclassified test images."""
     ap = argparse.ArgumentParser(description="Grad-CAM for a checkpoint.")
@@ -103,6 +116,8 @@ def main() -> None:
     }
 
     rng = np.random.default_rng(config.SEED)
+    compact_good: list[tuple[np.ndarray, np.ndarray, str]] = []
+    compact_bad: list[tuple[np.ndarray, np.ndarray, str]] = []
     ncols = args.per_class * 2
     fig_all, axes_all = plt.subplots(
         len(class_names), ncols,
@@ -123,6 +138,20 @@ def main() -> None:
         bad = bad[:args.per_class]
         print(f"{labels[i]}: {len(good)} correct, {len(bad)} wrong shown",
               flush=True)
+
+        # One correct example per class; up to two wrong examples per class
+        # (so a class with several errors contributes variety).
+        for k, ok in ([(good[0], True)] if good else []):
+            cam = gradcam_heatmap(grad_model, imgs[k], int(preds[k]))
+            compact_good.append((
+                imgs[k], cam,
+                f"{labels[i]} | CORRECT\n{files[k].name[:26]}"))
+        for k in bad[:2]:
+            cam = gradcam_heatmap(grad_model, imgs[k], int(preds[k]))
+            compact_bad.append((
+                imgs[k], cam,
+                f"{labels[i]} | WRONG $\\to$ {labels[preds[k]]}\n"
+                f"{files[k].name[:26]}"))
 
         fig, axes = plt.subplots(2, ncols, figsize=(3.2 * ncols, 6.4),
                                  squeeze=False)
@@ -171,6 +200,29 @@ def main() -> None:
     fig_all.tight_layout()
     fig_all.savefig(config.PLOTS_DIR / f"{prefix}_contact_sheet.png", dpi=120)
     plt.close(fig_all)
+
+    # Compact report sheet: three correct examples, then up to three failures.
+    picks_good = compact_good[:3]
+    picks_bad = compact_bad[:3]
+    nrows, ncols_c = 2, 3
+    fig_c, axes_c = plt.subplots(nrows, ncols_c, figsize=(10.5, 6.2),
+                                 squeeze=False)
+    for row, picks in enumerate((picks_good, picks_bad)):
+        for col in range(ncols_c):
+            ax = axes_c[row][col]
+            if col >= len(picks):
+                ax.axis("off")
+                continue
+            img, cam, title = picks[col]
+            render_compact_pair(img, cam, title, ax)
+    sm = plt.cm.ScalarMappable(cmap="jet", norm=Normalize(0, 1))
+    fig_c.colorbar(sm, ax=axes_c, orientation="horizontal", fraction=0.035,
+                   pad=0.03, label="normalised predicted-class CAM [0, 1]")
+    fig_c.suptitle(f"Grad-CAM — {label} ({data_dir.name} test; "
+                   f"top: correct, bottom: misclassified)", fontsize=10)
+    fig_c.savefig(config.PLOTS_DIR / f"{prefix}_compact.png", dpi=150,
+                  bbox_inches="tight")
+    plt.close(fig_c)
     print(f"Wrote Grad-CAM panels to {config.PLOTS_DIR}", flush=True)
 
 

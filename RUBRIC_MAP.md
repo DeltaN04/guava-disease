@@ -28,16 +28,16 @@ bash scripts/run_b_grid.sh
 
 # 4. Evaluate final runs (leak-free primary, released secondary)
 ./venv/bin/python evaluate.py --data-dir Dataset_leakfree \
-  --runs custom_final-s42,custom_final-s43,custom_final-s44,transfer_MobileNetV2_final-s42,transfer_MobileNetV2_final-s43,transfer_MobileNetV2_final-s44 \
+  --runs custom_final-s42,custom_final-s43,custom_final-s44,transfer_EfficientNetB0_final-s42,transfer_EfficientNetB0_final-s43,transfer_EfficientNetB0_final-s44 \
   --preds
 ./venv/bin/python evaluate.py --data-dir Dataset \
-  --runs custom_final-s42,custom_final-s43,custom_final-s44,transfer_MobileNetV2_final-s42,transfer_MobileNetV2_final-s43,transfer_MobileNetV2_final-s44 \
+  --runs custom_final-s42,custom_final-s43,custom_final-s44,transfer_EfficientNetB0_final-s42,transfer_EfficientNetB0_final-s43,transfer_EfficientNetB0_final-s44 \
   --preds --suffix released
 
 # 5. Statistics and figures
-./venv/bin/python scripts/stats.py --pairs "custom_final-s42:transfer_MobileNetV2_final-s42"
-./venv/bin/python scripts/gradcam.py --ckpt transfer_MobileNetV2_final-s42.keras \
-  --data-dir Dataset_leakfree --label "B final (MobileNetV2)"
+./venv/bin/python scripts/stats.py --pairs "custom_final-s42:transfer_EfficientNetB0_final-s42"
+./venv/bin/python scripts/gradcam.py --ckpt transfer_EfficientNetB0_final-s42.keras \
+  --data-dir Dataset_leakfree --label "B final (EfficientNetB0)"
 ./venv/bin/python scripts/make_figures.py
 
 # 6. Compile report and slides

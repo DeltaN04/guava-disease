@@ -44,5 +44,13 @@
       0,
       96
     ]
+  ],
+  "run_id": "transfer_MobileNetV2_leakfree",
+  "data_dir": "Dataset_leakfree",
+  "n_test": 392,
+  "class_names": [
+    "Anthracnose",
+    "fruit_fly",
+    "healthy_guava"
   ]
 }

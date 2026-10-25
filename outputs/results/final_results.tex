@@ -1,0 +1,12 @@
+\begin{tabular}{llcccrr}
+\toprule
+Run & Test split & Test acc & Val acc & Epochs & Min & Params \\
+\midrule
+custom\_final-s42 & leak-free & 0.9923 & 0.9737 & 25 & 144.7 & 1,243,683\\
+transfer\_EfficientNetB0\_final-s42 & leak-free & 0.9949 & 0.9908 & 12 & 18.8 & 4,378,278\\
+transfer\_EfficientNetB0\_final-s43 & leak-free & 0.9898 & 0.9921 & 12 & 28.5 & 4,378,278\\
+transfer\_EfficientNetB0\_final-s44 & leak-free & 1.0000 & 0.9895 & 12 & 28.6 & 4,378,278\\
+custom\_es-fixed & released & 0.9634 & 0.9735 & 15 & 116.7 & 1,243,683\\
+custom\_es-fixed-leakfree & leak-free & 0.9923 & 0.9737 & 25 & 144.7 & 1,243,683 \\
+\bottomrule
+\end{tabular}

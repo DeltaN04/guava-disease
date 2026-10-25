@@ -62,7 +62,7 @@ def final_table(exp: pd.DataFrame) -> None:
     write("final_results.tex", (
         "\\begin{tabular}{llcccrr}\n\\toprule\n"
         "Run & Test split & Test acc & Val acc & Epochs & Min & Params \\\\\n"
-        "\\midrule\n" + body + "\n\\bottomrule\n\\end{tabular}\n"))
+        "\\midrule\n" + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
 
 
 def t1_table(exp: pd.DataFrame) -> None:
@@ -84,7 +84,7 @@ def t1_table(exp: pd.DataFrame) -> None:
     write("t1_table.tex", (
         "\\begin{tabular}{llcccc}\n\\toprule\n"
         "Run & Test split & Test acc & Val acc & Epochs & Min \\\\\n"
-        "\\midrule\n" + body + "\n\\bottomrule\n\\end{tabular}\n"))
+        "\\midrule\n" + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
 
 
 def seed_summary(exp: pd.DataFrame) -> None:
@@ -98,23 +98,27 @@ def seed_summary(exp: pd.DataFrame) -> None:
     for (group, split), g in df.groupby(["group", "data_split"]):
         acc = g["test_acc"].astype(float)
         f1 = g["best_val_acc"].astype(float)
+        acc_sd = f"{acc.std(ddof=1):.4f}" if len(g) > 1 else "--"
+        f1_sd = f"{f1.std(ddof=1):.4f}" if len(g) > 1 else "--"
         rows.append((tex(group), split, f"{acc.mean():.4f} $\\pm$ "
-                     f"{acc.std(ddof=1):.4f}", f"{f1.mean():.4f} $\\pm$ "
-                     f"{f1.std(ddof=1):.4f}", f"{len(g)}"))
+                     f"{acc_sd}", f"{f1.mean():.4f} $\\pm$ "
+                     f"{f1_sd}", f"{len(g)}"))
     body = "\\\\\n".join(" & ".join(x) for x in rows)
     write("seed_summary.tex", (
         "\\begin{tabular}{llccc}\n\\toprule\n"
         "Final config & Split & Test acc mean $\\pm$ std & "
         "Best val acc mean $\\pm$ std & Seeds \\\\\n\\midrule\n"
-        + body + "\n\\bottomrule\n\\end{tabular}\n"))
+        + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
 
 
 def grid_table(exp: pd.DataFrame, task: str, name: str,
                title: str) -> None:
     """One optimisation-grid table (E1-E5)."""
     df = exp[exp["task"] == task].copy()
-    if task in ("E2", "E3", "E4"):
-        ref = exp[exp["run"] == "transfer_MobileNetV2_e1-adam"]
+    if task in ("E3", "E4"):
+        # E3/E4 are 6+6 runs; the matched baseline is the E2 reference, not
+        # the 8+8 E1 Adam run (which would confound budget with depth/backbone).
+        ref = exp[exp["run"] == "transfer_MobileNetV2_e2-ref"]
         if not ref.empty:
             df = pd.concat([ref, df], ignore_index=True)
     if df.empty:
@@ -144,11 +148,80 @@ def grid_table(exp: pd.DataFrame, task: str, name: str,
     write(name, (
         "\\begin{tabular}{llccc}\n\\toprule\n"
         f"{title} & Config & Best val acc & Best epoch & Min \\\\\n"
-        "\\midrule\n" + body + "\n\\bottomrule\n\\end{tabular}\n"))
+        "\\midrule\n" + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
+
+
+def _lr(x: object) -> str:
+    """Compact scientific notation for learning rates."""
+    mant, exp = f"{float(x):.0e}".split("e")
+    return f"{mant}e{int(exp)}"
+
+
+def grid_all_table(exp: pd.DataFrame) -> None:
+    """One compact validation grid for E1--E5, with matched references."""
+    sections = [
+        ("E1: Model B optimiser (8+8 epochs)", "E1",
+         ["transfer_MobileNetV2_e1-adam",
+          "transfer_MobileNetV2_e1-adamw",
+          "transfer_MobileNetV2_e1-rmsprop",
+          "transfer_MobileNetV2_e1-sgd"],
+         lambda r: {"adam": "Adam", "adamw": "AdamW",
+                    "rmsprop": "RMSprop", "sgd": "SGD"}[str(r["optimizer"])]),
+        ("E2: learning rate, one factor at a time (6+6)", "E2",
+         ["transfer_MobileNetV2_e2-ref",
+          "transfer_MobileNetV2_e2-head1e2",
+          "transfer_MobileNetV2_e2-head3e4",
+          "transfer_MobileNetV2_e2-ft1e4",
+          "transfer_MobileNetV2_e2-ft1e6"],
+         lambda r: (f"head {_lr(r['head_lr'])}, ft {_lr(r['ft_lr'])}"
+                    + (" (ref)" if str(r["run"]).endswith("e2-ref") else ""))),
+        ("E3: fine-tune depth (6+6; reference = E2 ref, 0.9789)", "E3",
+         ["transfer_MobileNetV2_e3-unfreeze0",
+          "transfer_MobileNetV2_e3-unfreeze60",
+          "transfer_MobileNetV2_e3-unfreezeall"],
+         lambda r: {"0": "head only", "60": "last 60",
+                    "9999": "all non-BN"}[str(int(float(r["unfreeze_last"])))]),
+        ("E4: backbone (6+6)", "E4",
+         ["transfer_EfficientNetB0_e4-effnet",
+          "transfer_MobileNetV2_e2-ref",
+          "transfer_ResNet50_e4-resnet"],
+         lambda r: ("EfficientNetB0" if r["backbone"] == "EfficientNetB0"
+                    else "MobileNetV2 (E2 ref)" if str(r["run"]).endswith("e2-ref")
+                    else "ResNet50")),
+        ("E5: Model A optimiser/schedule (8 epochs)", "E5",
+         ["custom_e5-adam", "custom_e5-adam-cosine", "custom_e5-sgd"],
+         lambda r: {"adam": "Adam", "sgd": "SGD"}.get(
+             str(r["optimizer"]), str(r["optimizer"]))
+                   + (" + cosine" if str(r["lr_schedule"]) == "cosine" else "")),
+    ]
+    rows = []
+    for title, _task, order, label in sections:
+        rows.append(f"\\addlinespace\n\\multicolumn{{4}}{{l}}{{\\textit{{{title}}}}} ")
+        for run in order:
+            r = exp[exp["run"] == run]
+            if r.empty:
+                continue
+            r = r.iloc[0]
+            rows.append(" & ".join((label(r), fmt(r["best_val_acc"]),
+                                    f"{int(r['best_epoch'])}",
+                                    f"{float(r['minutes']):.1f}")))
+    body = "\\\\\n".join(rows)
+    write("grid_all.tex", (
+        "\\begin{tabular}{lccc}\n\\toprule\n"
+        "Setting & Best val acc & Best epoch & Min \\\\\n\\midrule\n"
+        + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
+
+
+def short_run(name: str) -> str:
+    """Short display name for wide tables."""
+    return (name.replace("transfer_MobileNetV2_", "B: ")
+                .replace("transfer_EfficientNetB0_", "B: ")
+                .replace("transfer_ResNet50_", "B: ")
+                .replace("custom_", "A: "))
 
 
 def stats_table() -> None:
-    """McNemar + bootstrap CI table from stats.json."""
+    """McNemar table from stats.json."""
     p = config.RESULTS_DIR / "stats.json"
     if not p.exists():
         write("stats_table.tex", "% no stats yet\n")
@@ -156,17 +229,47 @@ def stats_table() -> None:
     stats = json.loads(p.read_text())
     rows = []
     for pair in stats.get("pairs", []):
+        verdict = pair["verdict"].replace("within noise at alpha=0.05",
+                                          "within noise")
         rows.append((
-            tex(pair["a"]), tex(pair["b"]), f"{pair['n_pairs']}",
+            tex(short_run(pair["a"])), tex(short_run(pair["b"])),
+            f"{pair['n_pairs']}",
             f"{pair['accuracy_a']:.4f}", f"{pair['accuracy_b']:.4f}",
             f"{pair['delta_b_minus_a']:+.4f}",
             f"{pair['a_wrong_b_correct']}/{pair['a_correct_b_wrong']}",
-            f"{pair['p_exact']:.4f}", tex(pair["verdict"])))
+            f"{pair['p_exact']:.4f}", tex(verdict)))
     body = "\\\\\n".join(" & ".join(x) for x in rows)
     write("stats_table.tex", (
-        "\\begin{tabular}{llcccccc}\n\\toprule\n"
-        "A & B & n & Acc A & Acc B & $\\Delta$ & b/c & McNemar $p$ \\\\\n"
-        "\\midrule\n" + body + "\n\\bottomrule\n\\end{tabular}\n"))
+        "\\begin{tabular}{llcccccc l}\n\\toprule\n"
+        "A & B & n & Acc A & Acc B & $\\Delta$ & b/c & "
+        "McNemar $p$ & Verdict \\\\\n"
+        "\\midrule\n" + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
+
+
+def ci_table() -> None:
+    """Per-run bootstrap and Wilson intervals for final runs."""
+    p = config.RESULTS_DIR / "stats.json"
+    if not p.exists():
+        write("ci_table.tex", "% no stats yet\n")
+        return
+    stats = json.loads(p.read_text())
+    rows = []
+    for run, r in stats.get("runs", {}).items():
+        a_lo, a_hi = r["accuracy_boot_ci95"]
+        f_lo, f_hi = r["macro_f1_boot_ci95"]
+        w_lo, w_hi = r["accuracy_wilson_ci95"]
+        rows.append((tex(short_run(run)), f"{r['n']}",
+                     f"{r['accuracy']:.4f}",
+                     f"[{a_lo:.4f}, {a_hi:.4f}]",
+                     f"{r['macro_f1']:.4f}",
+                     f"[{f_lo:.4f}, {f_hi:.4f}]",
+                     f"[{w_lo:.4f}, {w_hi:.4f}]"))
+    body = "\\\\\n".join(" & ".join(x) for x in rows)
+    write("ci_table.tex", (
+        "\\begin{tabular}{lcccccc}\n\\toprule\n"
+        "Run & n & Acc & 95\\% boot CI & Macro F1 & 95\\% boot CI & "
+        "Wilson CI \\\\\n\\midrule\n"
+        + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
 
 
 def main() -> None:
@@ -183,7 +286,9 @@ def main() -> None:
     grid_table(exp, "E3", "e3_table.tex", "Fine-tune depth")
     grid_table(exp, "E4", "e4_table.tex", "Backbone")
     grid_table(exp, "E5", "e5_table.tex", "Model A setting")
+    grid_all_table(exp)
     stats_table()
+    ci_table()
 
 
 if __name__ == "__main__":

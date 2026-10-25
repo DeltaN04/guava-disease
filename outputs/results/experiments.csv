@@ -1,0 +1,28 @@
+run,task,data_split,model,backbone,optimizer,head_lr,ft_lr,custom_lr,lr_schedule,unfreeze_last,epochs,seed,best_val_acc,best_epoch,test_acc,test_acc_released,minutes,params,trainable,status,note
+transfer_MobileNetV2_e1-adam,E1,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,1e-05,,plateau,30,16,42,0.9803,12,,,9.4,2586691,1839427,completed,"reference: Adam head 1e-3 ft 1e-5, unfreeze 30"
+transfer_MobileNetV2_e1-adamw,E1,leak-free,transfer_MobileNetV2,MobileNetV2,adamw,0.001,1e-05,,plateau,30,16,42,0.9829,15,,,10.4,2586691,1839427,completed,AdamW Keras default weight decay 0.004
+transfer_MobileNetV2_e1-rmsprop,E1,leak-free,transfer_MobileNetV2,MobileNetV2,rmsprop,0.001,1e-05,,plateau,30,16,42,0.9724,9,,,12.0,2586691,1839427,completed,RMSprop head 1e-3 ft 1e-5
+transfer_MobileNetV2_e1-sgd,E1,leak-free,transfer_MobileNetV2,MobileNetV2,sgd,0.01,0.001,,plateau,30,16,42,0.9658,5,,,11.7,2586691,328707,completed,"SGD Nesterov 0.9, head 1e-2 ft 1e-3"
+transfer_MobileNetV2_e2-ft1e4,E2,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,0.0001,,plateau,30,12,42,0.9789,8,,,14.1,2586691,1839427,completed,ft lr 1e-4; head 1e-3; 6+6 epochs
+transfer_MobileNetV2_e2-ft1e6,E2,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,1e-06,,plateau,30,12,42,0.9776,6,,,14.4,2586691,328707,completed,ft lr 1e-6; head 1e-3; 6+6 epochs
+transfer_MobileNetV2_e2-head1e2,E2,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.01,1e-05,,plateau,30,12,42,0.9776,12,,,14.4,2586691,1839427,completed,head lr 1e-2; ft 1e-5; 6+6 epochs; meta recovered after parallel parity-check temp-file race (D18)
+transfer_MobileNetV2_e2-head3e4,E2,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.0003,1e-05,,plateau,30,12,42,0.9763,8,,,14.3,2586691,1839427,completed,head lr 3e-4; ft 1e-5; 6+6 epochs
+transfer_MobileNetV2_e2-ref,E2,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,1e-05,,plateau,30,12,42,0.9789,12,,,10.3,2586691,1839427,completed,"reference: head 1e-3, ft 1e-5, 6+6 epochs"
+transfer_MobileNetV2_e3-unfreeze0,E3,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,1e-05,,plateau,0,6,42,0.9737,5,,,6.1,2586691,328707,completed,head only; 6 epochs
+transfer_MobileNetV2_e3-unfreeze60,E3,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,1e-05,,plateau,60,12,42,0.9763,10,,,12.1,2586691,2260483,completed,unfreeze last 60; 6+6 epochs
+transfer_MobileNetV2_e3-unfreezeall,E3,leak-free,transfer_MobileNetV2,MobileNetV2,adam,0.001,1e-05,,plateau,9999,12,42,0.9829,12,,,20.3,2586691,2518467,completed,unfreeze all non-BN; 6+6 epochs
+transfer_EfficientNetB0_e4-effnet,E4,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,42,0.9908,3,,,18.8,4378278,328707,completed,"EfficientNetB0; [0,255]; 6+6 epochs"
+transfer_ResNet50_e4-resnet,E4,leak-free,transfer_ResNet50,ResNet50,adam,0.001,1e-05,,plateau,30,12,42,0.975,11,,,34.7,24113027,14953987,completed,ResNet50; approximate RGB mean subtraction; 6+6 epochs
+custom_e5-adam,E5,leak-free,custom_cnn,,adam,,,0.001,plateau,,8,42,0.9579,8,,,40.8,1243683,1241251,completed,"Adam, ReduceLROnPlateau, 8 epochs"
+custom_e5-adam-cosine,E5,leak-free,custom_cnn,,adam,,,0.001,cosine,,8,42,0.9553,7,,,28.9,1243683,1241251,completed,"Adam, cosine decay, 8 epochs"
+custom_e5-sgd,E5,leak-free,custom_cnn,,sgd,,,0.01,plateau,,8,42,0.9539,5,,,27.8,1243683,1241251,completed,"SGD Nesterov 0.9, lr 1e-2, ReduceLROnPlateau, 8 epochs"
+custom_final-s42,E6,leak-free,custom_cnn,,adam,,,0.001,plateau,,25,42,0.9737,16,0.9923,,144.7,1243683,1241251,completed,Task 1 fixed A seed 42; best checkpoint at epoch 16 of a 25-epoch budget; reused as final A reference
+transfer_EfficientNetB0_final-s42,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,42,0.9908,3,0.9949,,18.8,4378278,328707,completed,"reused E4 winner seed 42; EfficientNetB0 6+6, Adam"
+transfer_EfficientNetB0_final-s43,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,43,0.9921,2,0.9898,,28.5,4378278,328707,completed,"E6 best B seed 43; EfficientNetB0 6+6, Adam"
+transfer_EfficientNetB0_final-s44,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,44,0.9895,2,1.0,,28.6,4378278,328707,completed,"E6 best B seed 44; EfficientNetB0 6+6, Adam"
+custom_es-fixed,T1,released,custom_cnn,,adam,,,0.001,plateau,,15,42,0.9735,15,,0.9634,116.7,1243683,1241251,completed,fixed ES on val_accuracy; released split; 15-epoch cap (>=15 required)
+custom_es-fixed-leakfree,T1,leak-free,custom_cnn,,adam,,,0.001,plateau,,25,42,0.9737,16,0.9923,,144.7,1243683,1241251,completed,resumed old 16-epoch checkpoint; 25-epoch CPU-budget completion (D13)
+custom_leakfree,misc,,custom_cnn,,,,,,,,16,42,0.9737,,0.9923,,93.3,1243683,1241251,completed,
+transfer_MobileNetV2_frozen,misc,,transfer_MobileNetV2,,,,,,,,,42,0.9907,,0.9948,,6.2,2586691,328707,completed,
+transfer_MobileNetV2_leakfree,misc,,transfer_MobileNetV2,,,,,,,,,42,0.9855,,0.9872,,11.2,2586691,1839427,completed,
+transfer_MobileNetV2_noaug,misc,,transfer_MobileNetV2,,,,,,,,,42,0.9974,,0.9948,,13.1,2586691,1839427,completed,

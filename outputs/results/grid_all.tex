@@ -1,0 +1,34 @@
+\begin{tabular}{lccc}
+\toprule
+Setting & Best val acc & Best epoch & Min \\
+\midrule
+\addlinespace
+\multicolumn{4}{l}{\textit{E1: Model B optimiser (8+8 epochs)}} \\
+Adam & 0.9803 & 12 & 9.4\\
+AdamW & 0.9829 & 15 & 10.4\\
+RMSprop & 0.9724 & 9 & 12.0\\
+SGD & 0.9658 & 5 & 11.7\\
+\addlinespace
+\multicolumn{4}{l}{\textit{E2: learning rate, one factor at a time (6+6)}} \\
+head 1e-3, ft 1e-5 (ref) & 0.9789 & 12 & 10.3\\
+head 1e-2, ft 1e-5 & 0.9776 & 12 & 14.4\\
+head 3e-4, ft 1e-5 & 0.9763 & 8 & 14.3\\
+head 1e-3, ft 1e-4 & 0.9789 & 8 & 14.1\\
+head 1e-3, ft 1e-6 & 0.9776 & 6 & 14.4\\
+\addlinespace
+\multicolumn{4}{l}{\textit{E3: fine-tune depth (6+6; reference = E2 ref, 0.9789)}} \\
+head only & 0.9737 & 5 & 6.1\\
+last 60 & 0.9763 & 10 & 12.1\\
+all non-BN & 0.9829 & 12 & 20.3\\
+\addlinespace
+\multicolumn{4}{l}{\textit{E4: backbone (6+6)}} \\
+EfficientNetB0 & 0.9908 & 3 & 18.8\\
+MobileNetV2 (E2 ref) & 0.9789 & 12 & 10.3\\
+ResNet50 & 0.9750 & 11 & 34.7\\
+\addlinespace
+\multicolumn{4}{l}{\textit{E5: Model A optimiser/schedule (8 epochs)}} \\
+Adam & 0.9579 & 8 & 40.8\\
+Adam + cosine & 0.9553 & 7 & 28.9\\
+SGD & 0.9539 & 5 & 27.8 \\
+\bottomrule
+\end{tabular}

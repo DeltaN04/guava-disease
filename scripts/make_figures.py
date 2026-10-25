@@ -66,10 +66,10 @@ def plot_optimizer_and_lr() -> None:
     all_exp = exp.dropna(subset=["best_val_acc"])
     e2 = all_exp[all_exp["task"].isin(["E1", "E2"])]
     head_runs = ["transfer_MobileNetV2_e2-head1e2",
-                 "transfer_MobileNetV2_e1-adam",
+                 "transfer_MobileNetV2_e2-ref",
                  "transfer_MobileNetV2_e2-head3e4"]
     ft_runs = ["transfer_MobileNetV2_e2-ft1e4",
-               "transfer_MobileNetV2_e1-adam",
+               "transfer_MobileNetV2_e2-ref",
                "transfer_MobileNetV2_e2-ft1e6"]
     if not e2.empty:
         fig, axes = plt.subplots(1, 2, figsize=(10, 4.0))

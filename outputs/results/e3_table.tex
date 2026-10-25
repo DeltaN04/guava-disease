@@ -1,0 +1,10 @@
+\begin{tabular}{llccc}
+\toprule
+Fine-tune depth & Config & Best val acc & Best epoch & Min \\
+\midrule
+e2-ref & adam; unfreeze=30.0 & 0.9789 & 12 & 10.3\\
+e3-unfreeze0 & adam; unfreeze=0.0 & 0.9737 & 5 & 6.1\\
+e3-unfreeze60 & adam; unfreeze=60.0 & 0.9763 & 10 & 12.1\\
+e3-unfreezeall & adam; unfreeze=9999.0 & 0.9829 & 12 & 20.3 \\
+\bottomrule
+\end{tabular}

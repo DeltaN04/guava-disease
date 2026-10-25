@@ -151,6 +151,10 @@
 - E3 unfreezes last {0, 30, 60, all} non-BN layers; last-30 is the E1 Adam
   reference. E4 compares MobileNetV2 / EfficientNetB0 / ResNet50 under the
   same two-phase protocol; MobileNetV2 is the E1 Adam reference.
+- E2-E4 use 6+6 epochs (E1 uses the specified 8+8) because running two
+  transfer jobs in parallel while the custom CNN trains made 8+8 the binding
+  cost; the epoch count is recorded in each meta and in the tables. This is a
+  CPU-budget cut, not a silent shrink.
 - EfficientNetB0 preprocessing was corrected: Keras EfficientNet contains its
   own Rescaling(1/255)+Normalization, so the model must receive [0,255];
   the previous [-1,1] rescaling would have made every input negative. ResNet50
@@ -203,3 +207,45 @@
   the chi-square-with-continuity statistic is also stored. Differences that
   are not significant at alpha=0.05 are described as within noise; a
   significant difference spanning <=2 test images is flagged separately.
+
+## D17. Parallel execution and thread allocation (25 Oct 2026)
+- Two CPU-only TensorFlow streams contend for the same 10 cores: the custom
+  CNN gets roughly 2x slower per epoch and a transfer job gets roughly 1.3x
+  slower. Running two *custom* runs concurrently is worse in total wall time
+  than running them sequentially, so custom runs stay sequential. Light
+  transfer jobs are overlapped with the custom run.
+- E2-E4 are executed two-at-a-time with 3 intra-op threads each; the heavy
+  ResNet50 E4 run gets 6 threads on its own. E6 Model B seed runs are launched
+  with 2 threads while a custom E5/E6 run trains. Final evaluations and report
+  generation run after training so they do not steal cores from checkpoints.
+- The parallel launcher is `scripts/run_b_grid_parallel.sh`. Every job still
+  writes its own log, meta and checkpoint; resumability and per-run provenance
+  are unchanged.
+
+## D18. Parallel parity-check temp-file race (25 Oct 2026)
+- Two parallel transfer jobs shared `outputs/models/_smoke_roundtrip.keras` in
+  `check_save_reload`; one truncated the other's temp archive, so
+  `e2-head1e2` finished training but crashed before writing its meta
+  (`BadZipFile: Truncated file header`).
+- Fix: the temp path is now per-run (`_smoke_roundtrip_<stem>.keras`).
+- Recovery: `transfer_MobileNetV2_e2-head1e2` best/final checkpoints and CSV
+  are intact; its meta was reconstructed from the CSV (best val 0.9776 at
+  epoch 12), params from the checkpoint, wall time from the log start/end, and
+  a fresh save/reload parity check passed. No retraining and no invented
+  accuracy — the recovery is marked in the run note and this decision.
+
+## D19. E6 Model A uses the fixed-A protocol, not the 8-epoch E5 winner (25 Oct 2026)
+- E5 selected Adam (val 0.9579) over SGD (0.9539) and Adam+cosine (0.9553)
+  at the 8-epoch optimisation budget. However, the 8-epoch Adam checkpoint
+  scored only **0.9311** on the leak-free test, while the Task-1 fixed-A
+  checkpoint (best epoch 16, 25-epoch budget) scored **0.9923**. The 8-epoch
+  model is clearly undertrained and would make the final A-vs-B comparison
+  misleading.
+- E6 therefore uses the Task-1 fixed-A protocol (Adam 1e-3, val_accuracy ES,
+  patience 8, ReduceLROnPlateau) as the final Model A configuration. Seed 42
+  is the Task-1 leak-free run (best checkpoint at epoch 16); seeds 43/44 are
+  trained with the same protocol and a 16-epoch budget (>=15 required). The
+  E5 8-epoch Adam result is retained as the optimisation-study winner at that
+  budget, not as the final model. This is a deliberate correction, not a
+  post-hoc cherry-pick: the E5 winner was tested and rejected because it was
+  undertrained.

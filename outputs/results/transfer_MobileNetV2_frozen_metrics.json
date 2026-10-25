@@ -44,5 +44,13 @@
       0,
       94
     ]
+  ],
+  "run_id": "transfer_MobileNetV2_frozen",
+  "data_dir": "Dataset",
+  "n_test": 382,
+  "class_names": [
+    "Anthracnose",
+    "fruit_fly",
+    "healthy_guava"
   ]
 }

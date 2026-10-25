@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -119,9 +120,14 @@ def make_callbacks(stem: str, *, append: bool = False,
     return cbs, ckpt, csv_path
 
 
-def check_save_reload(model: tf.keras.Model, sample: tf.Tensor) -> bool:
-    """Save/reload round-trip must reproduce predictions."""
-    tmp = config.MODELS_DIR / "_smoke_roundtrip.keras"
+def check_save_reload(model: tf.keras.Model, sample: tf.Tensor,
+                      stem: str = "smoke") -> bool:
+    """Save/reload round-trip must reproduce predictions.
+
+    The temp path is per-run: parallel transfer jobs previously shared one
+    ``_smoke_roundtrip.keras`` and truncated each other's file.
+    """
+    tmp = config.MODELS_DIR / f"_smoke_roundtrip_{stem}.keras"
     before = model.predict(sample, verbose=0)
     model.save(tmp)
     reloaded = tf.keras.models.load_model(tmp, compile=False)
@@ -195,6 +201,11 @@ def train_custom(args, train_ds, val_ds, class_names, spb: int) -> dict:
         start_from_epoch=(args.start_from_epoch if initial_epoch == 0 else 0),
         initial_best=(prior_best if initial_epoch else None),
         schedule=args.lr_schedule)
+    # A resumed run starts from a known best checkpoint. Seed the new stem's
+    # best checkpoint with it so a later epoch that does not beat the prior
+    # best cannot replace it with a worse final-epoch model.
+    if initial_epoch and not ckpt.exists():
+        shutil.copy2(Path(args.resume), ckpt)
     cw = (data_pipeline.get_class_weights(args.data_dir, class_names)
           if args.class_weights else None)
     t0 = time.time()
@@ -207,12 +218,18 @@ def train_custom(args, train_ds, val_ds, class_names, spb: int) -> dict:
         model.save(ckpt)
     loaded = tf.keras.models.load_model(ckpt, compile=False)
     sample = next(iter(val_ds.take(1)))[0][:4]
-    parity = check_save_reload(loaded, sample)
+    parity = check_save_reload(loaded, sample, stem)
     total, trainable = model_zoo.count_params(loaded)
 
     val_acc = hist.history.get("val_accuracy", [])
     best_new = float(max(val_acc)) if val_acc else float("nan")
     best_val = max(prior_best, best_new) if prior_best else best_new
+    best_epoch = _best_epoch(hist.history, initial_epoch)
+    if prior_best and prior_best >= best_new:
+        # The old checkpoint is still the best; its exact epoch is unknown
+        # beyond the resume boundary, so record the boundary, not a worse
+        # epoch from the resumed segment.
+        best_epoch = initial_epoch
     epochs_run = initial_epoch + len(hist.history["loss"])
     meta = {
         "run": stem, "task": args.task, "note": args.note,
@@ -220,7 +237,7 @@ def train_custom(args, train_ds, val_ds, class_names, spb: int) -> dict:
         "data_dir": str(Path(args.data_dir).resolve().name),
         "epochs_planned": args.epochs_custom, "epochs_run": epochs_run,
         "initial_epoch": initial_epoch,
-        "best_epoch": _best_epoch(hist.history, initial_epoch),
+        "best_epoch": best_epoch,
         "best_val_accuracy": best_val,
         "new_train_seconds": round(dt, 1),
         "prior_train_seconds": round(prior_seconds, 1),
@@ -306,7 +323,7 @@ def train_transfer(args, train_ds, val_ds, class_names, spb: int) -> dict:
         model.save(ckpt)
     loaded = tf.keras.models.load_model(ckpt, compile=False)
     sample = next(iter(val_ds.take(1)))[0][:4]
-    parity = check_save_reload(loaded, sample)
+    parity = check_save_reload(loaded, sample, stem)
     total, trainable = model_zoo.count_params(loaded)
 
     meta = {
