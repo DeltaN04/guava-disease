@@ -1,12 +1,14 @@
-\begin{tabular}{llcccrr}
+\begin{tabular}{lccccrr}
 \toprule
-Run & Test split & Test acc & Val acc & Epochs & Min & Params \\
+Run & Leak-free & Released & Val acc & Epochs & Min & Params \\
 \midrule
-custom\_final-s42 & leak-free & 0.9923 & 0.9737 & 25 & 144.7 & 1,243,683\\
-transfer\_EfficientNetB0\_final-s42 & leak-free & 0.9949 & 0.9908 & 12 & 18.8 & 4,378,278\\
-transfer\_EfficientNetB0\_final-s43 & leak-free & 0.9898 & 0.9921 & 12 & 28.5 & 4,378,278\\
-transfer\_EfficientNetB0\_final-s44 & leak-free & 1.0000 & 0.9895 & 12 & 28.6 & 4,378,278\\
-custom\_es-fixed & released & 0.9634 & 0.9735 & 15 & 116.7 & 1,243,683\\
-custom\_es-fixed-leakfree & leak-free & 0.9923 & 0.9737 & 25 & 144.7 & 1,243,683 \\
+custom\_final-s42 & 0.9923 & 0.9764 & 0.9737 & 25 & 144.7 & 1,243,683\\
+custom\_final-s43 & 0.9847 & 0.9791 & 0.9697 & 16 & 59.5 & 1,243,683\\
+custom\_final-s44 & 0.9413 & 0.9686 & 0.9684 & 16 & 77.9 & 1,243,683\\
+transfer\_EfficientNetB0\_final-s42 & 0.9949 & 0.9948 & 0.9908 & 12 & 18.8 & 4,378,278\\
+transfer\_EfficientNetB0\_final-s43 & 0.9898 & 0.9948 & 0.9921 & 12 & 28.5 & 4,378,278\\
+transfer\_EfficientNetB0\_final-s44 & 1.0000 & 0.9895 & 0.9895 & 12 & 28.6 & 4,378,278\\
+custom\_es-fixed & -- & 0.9634 & 0.9735 & 15 & 116.7 & 1,243,683\\
+custom\_es-fixed-leakfree & 0.9923 & -- & 0.9737 & 25 & 144.7 & 1,243,683 \\
 \bottomrule
 \end{tabular}

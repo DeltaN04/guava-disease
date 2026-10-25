@@ -265,9 +265,9 @@
 % 14
 \begin{frame}{E1: optimiser comparison (Model B)}
   \centering
-  \includegraphics[width=0.68\textwidth]{optimizer_comparison.png}
+  \includegraphics[width=0.55\textwidth]{optimizer_comparison.png}
   \vspace{1mm}
-  \scriptsize
+  \tiny
   \input{../outputs/results/e1_table.tex}
 \end{frame}
 % 15
@@ -285,18 +285,18 @@
 \begin{frame}{E3/E4: depth and backbone}
   \begin{columns}[T]
     \begin{column}{0.49\textwidth}
-      \centering\scriptsize
-      \textbf{Fine-tune depth}\par\vspace{1mm}
-      \input{../outputs/results/e3_table.tex}
+      \centering\tiny
+      \textbf{Fine-tune depth}\par\vspace{0.5mm}
+      \resizebox{\linewidth}{!}{\input{../outputs/results/e3_table.tex}}
     \end{column}
     \begin{column}{0.49\textwidth}
-      \centering\scriptsize
-      \textbf{Backbone}\par\vspace{1mm}
-      \input{../outputs/results/e4_table.tex}
+      \centering\tiny
+      \textbf{Backbone}\par\vspace{0.5mm}
+      \resizebox{\linewidth}{!}{\input{../outputs/results/e4_table.tex}}
     \end{column}
   \end{columns}
-  \vspace{2mm}
-  \includegraphics[width=0.62\textwidth]{backbone_cost.png}
+  \vspace{1mm}
+  \includegraphics[width=0.5\textwidth]{backbone_cost.png}
 \end{frame}
 % 17
 \begin{frame}{E5: Model A optimiser and schedule}
@@ -312,22 +312,17 @@
 \end{frame}
 % 18
 \begin{frame}{E6: final configurations, three seeds}
-  \centering\scriptsize
-  \input{../outputs/results/seed_summary.tex}
-  \vspace{2mm}
-  \begin{itemize}
-    \item Seeds 42/43/44; mean $\pm$ std across seeds.
-    \item Released and leak-free test splits reported separately.
-  \end{itemize}
+  \centering\tiny
+  \scalebox{0.8}{\input{../outputs/results/seed_summary.tex}}
 \end{frame}
 % 19
 \begin{frame}{Confidence intervals and paired tests}
   \centering
-  \includegraphics[width=0.64\textwidth]{accuracy_ci.png}
+  \includegraphics[height=0.42\textheight,keepaspectratio]{accuracy_ci.png}
   \vspace{1mm}
 
   \scriptsize
-  \input{../outputs/results/stats_table.tex}
+  \resizebox{\linewidth}{!}{\input{../outputs/results/stats_table.tex}}
   \vspace{1mm}
   \begin{itemize}
     \item Bootstrap 95\% CI, 2,000 resamples; exact McNemar on identical test
@@ -356,12 +351,12 @@
   \begin{columns}[T]
     \begin{column}{0.49\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{custom_final-s42_cm.png}
+      \includegraphics[width=0.92\linewidth]{custom_final-s42_cm.png}
       \small Model A, seed 42
     \end{column}
     \begin{column}{0.49\textwidth}
       \centering
-      \includegraphics[width=\linewidth]{transfer_EfficientNetB0_final-s42_cm.png}
+      \includegraphics[width=0.92\linewidth]{transfer_EfficientNetB0_final-s42_cm.png}
       \small Model B, seed 42
     \end{column}
   \end{columns}
@@ -375,7 +370,7 @@
 % 22
 \begin{frame}{Qualitative: Grad-CAM}
   \centering
-  \includegraphics[width=0.87\textwidth]{gradcam_transfer_EfficientNetB0_final-s42_compact.png}
+  \includegraphics[height=0.58\textheight,keepaspectratio]{gradcam_transfer_EfficientNetB0_final-s42_compact.png}
   \vspace{1mm}
   \begin{itemize}
     \item Predicted-class CAM; each heatmap normalised to $[0,1]$ with an
@@ -392,7 +387,8 @@
       \begin{itemize}
         \item CPU-only: 224px instead of native 512px; smaller grid.
         \item E5 AdamW/RMSprop cut; three seeds only.
-        \item 392-image leak-free test: 1 image = 0.26 pp.
+        \item 392-image leak-free test: 1 image = 0.26 pp. Seed 44 differs
+              by 23 images (significant); seeds 42/43 by 1--2 (within noise).
         \item Leak-free control is not a field trial.
         \item Released val count 755 vs 775 in the notes.
       \end{itemize}
@@ -400,8 +396,9 @@
     \begin{column}{0.46\textwidth}
       \textbf{Conclusion}
       \begin{itemize}
-        \item Transfer is the stronger default on this small dataset, but the
-              headline is methodological.
+        \item Transfer is the stronger and more stable default on this small
+              dataset (0.9949 vs 0.9728 mean test accuracy); the headline is
+              methodological.
         \item A curated-split accuracy is not a deployment estimate.
         \item Leak-free control + paired statistics + Grad-CAM is the minimum
               honest evaluation.

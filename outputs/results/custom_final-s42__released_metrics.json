@@ -1,0 +1,56 @@
+{
+  "run": "custom_final-s42",
+  "test_accuracy": 0.9764397905759162,
+  "macro_precision": 0.9787234042553191,
+  "macro_recall": 0.9737224949990907,
+  "macro_f1": 0.975574516558123,
+  "macro_auc": 0.9993831594286311,
+  "per_class": {
+    "Anthracnose": {
+      "precision": 1.0,
+      "recall": 0.9743589743589743,
+      "f1": 0.987012987012987,
+      "auc": 0.999971636033583,
+      "support": 156
+    },
+    "fruit_fly": {
+      "precision": 0.9361702127659575,
+      "recall": 1.0,
+      "f1": 0.967032967032967,
+      "auc": 0.9992121212121212,
+      "support": 132
+    },
+    "healthy_guava": {
+      "precision": 1.0,
+      "recall": 0.9468085106382979,
+      "f1": 0.9726775956284153,
+      "auc": 0.9989657210401891,
+      "support": 94
+    }
+  },
+  "confusion_matrix": [
+    [
+      152,
+      4,
+      0
+    ],
+    [
+      0,
+      132,
+      0
+    ],
+    [
+      0,
+      5,
+      89
+    ]
+  ],
+  "run_id": "custom_final-s42__released",
+  "data_dir": "Dataset",
+  "n_test": 382,
+  "class_names": [
+    "Anthracnose",
+    "fruit_fly",
+    "healthy_guava"
+  ]
+}

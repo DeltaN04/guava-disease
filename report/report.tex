@@ -331,8 +331,8 @@ because three seeds estimate run-to-run variability but do not turn a
 392-image test set into a large sample.
 
 \begin{table}[H]\centering
-\caption{Final runs (per seed). ``Released'' is the leaked split; ``leak-free''
-is the cluster-grouped control.}
+\caption{Final runs (E6 seeds 42--44 plus the fixed Model A). ``Released'' is
+the leaked split; ``leak-free'' is the cluster-grouped control.}
 \label{tab:final}\input{../outputs/results/final_results.tex}\end{table}
 
 \begin{table}[H]\centering
@@ -345,13 +345,15 @@ deviation).}
 The final Model B is EfficientNetB0 with Adam and a 6+6 budget. Its leak-free
 test accuracies are 0.9949, 0.9898, and 1.0000 for seeds 42, 43, and 44,
 a mean of $0.9949 \pm 0.0051$. The perfect seed-44 score is a property of this
-392-image test set, not evidence of zero error; seed 43 makes four errors.
-All three best checkpoints come from the frozen-head phase (epochs 2--3), so
-the selected Model B is effectively a linear probe on EfficientNetB0 features,
-and fine-tuning did not improve it. Model A's seed-42 fixed-A checkpoint scores
-0.9923; its seeds 43/44 use the same fixed-A protocol and are reported in the
-same table. The A-versus-B difference is therefore at most a few images and is
-tested formally below rather than interpreted from the point estimates.
+392-image test set, not evidence of zero error: its Wilson 95\% interval is
+$[0.9903,1.0000]$, and seed 43 makes four errors. All three best checkpoints
+come from the frozen-head phase (epochs 2--3), so the selected Model B is
+effectively a linear probe on EfficientNetB0 features, and fine-tuning did not
+improve it. Model A's fixed-A seeds score 0.9923, 0.9847, and 0.9413, a mean of
+$0.9728 \pm 0.0275$. Model B is therefore 2.2 percentage points higher on
+average and its seed spread is about five times smaller. The paired tests below
+show that this average hides seed-level variation: seeds 42 and 43 are within
+noise, while seed 44 is a large, significant difference.
 \end{sloppypar}
 
 \begin{figure}[H]
@@ -365,11 +367,14 @@ images. Wilson intervals are reported in the text and in
 \end{figure}
 
 \subsection{Paired tests: is the difference real?}
-Table~\ref{tab:stats} reports exact McNemar tests on paired per-image
-correctness. The A-versus-B comparison uses the same leak-free test images;
-the B-variant comparisons isolate the effect of fine-tuning and augmentation
-where those checkpoints are available. A non-significant result is reported as
-within noise, not as a tie.
+Table~\ref{tab:stats} reports three seed-matched exact McNemar tests on paired
+per-image correctness over the same leak-free test images. Seeds 42 and 43
+differ by 1--2 images (2/1 and 6/4 discordant pairs, $p=1.0000$ and $0.7539$),
+so those differences are within noise. Seed 44 differs by 23 images
+(0.9413 versus 1.0000, 23/0 discordant pairs, $p<0.001$), which is
+significant. The honest summary is not ``B always wins'': B is at least as good
+on every seed, is significantly better on the seed where A fails, and has much
+lower seed variance.
 
 \begin{table}[H]\centering
 \caption{Paired comparisons: bootstrap accuracy and exact McNemar tests.
@@ -383,12 +388,15 @@ validation and test image shares an original with training. The leak-free
 re-split removes that overlap (0/473 clusters span splits). The duplicate
 audit, not the aggregate accuracy gap, is the proof of leakage.
 
-Aggregate released scores are not uniformly higher. Fixed Model A scores
-0.9634 on released and 0.9923 on leak-free; the earlier Model B scores 0.9921
-on released and 0.9872 on leak-free, while the final EfficientNetB0 reaches
-0.9949 on leak-free. The two test sets differ in difficulty and class
-composition, so the released-minus-leak-free difference is not a clean causal
-estimate of inflation. What the audit establishes is that the released split
+Aggregate released scores are not uniformly higher. Averaged over the three
+seeds, the final Model A scores 0.9747 on released and 0.9728 on leak-free,
+while the final EfficientNetB0 scores 0.9930 on released and 0.9949 on
+leak-free. The fixed seed-42 A checkpoint shows the opposite direction
+(0.9634 released versus 0.9923 leak-free), although its released run used the
+15-epoch task budget rather than the 25-epoch leak-free budget. The two test
+sets differ in difficulty and class composition, so the
+released-minus-leak-free difference is not a clean causal estimate of
+inflation. What the audit establishes is that the released split
 cannot answer the deployment question, and that a high released score is
 partly near-duplicate recognition. We therefore compare models only on the
 same split and with the same training budget, and treat the leak-free number
@@ -466,7 +474,7 @@ important lesson is methodological: a curated-split accuracy is not a
 deployment estimate, and a leak-free control plus paired statistics is the
 minimum honest evaluation.
 
-\small
+\footnotesize
 \raggedright
 \bibliographystyle{plainnat}
 \bibliography{references}

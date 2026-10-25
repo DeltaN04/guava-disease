@@ -10,7 +10,7 @@ marked complete without a concrete artefact.
 | **CO2 — Implementation (models + pipeline)** | Working data pipeline, Model A and Model B implementations, training/evaluation tooling, reproducible runs | `data_pipeline.py` (augmentation, splits, class weights); `models.py` (custom CNN, MobileNetV2/EfficientNetB0/ResNet50, optimiser factory, preprocessing); `train.py` (two-phase training, resumability, metadata); `evaluate.py` (metrics, confusion matrices, ROC, per-image predictions); architecture block diagram in report Figure 1 and slides frame 9–10; smoke-test evidence in `outputs/logs/qa1_meta.json` (save/reload parity true). |
 | **CO3 — Implementation (experiments + reproducibility)** | Executed experiments with fixed seeds, logs, resumability, and a machine-readable record | `outputs/results/experiments.csv` (all E1–E6 + T1 runs); `outputs/logs/*_meta.json` (full config, best epoch, train time, params); `outputs/logs/*.csv` (per-epoch history); `scripts/run_b_grid.sh` (E1–E4 launcher); `DECISIONS.md` D11–D16 (protocol, cuts, provenance incident); `PROGRESS.md` phase tracker. |
 | **CO4 — Optimisation** | Controlled optimisation study over optimiser, LR, depth, backbone; Model A optimiser/schedule; final configs with seeds; cuts documented | Report §3.4 (grid) and §4.2–4.3 (E1–E6); tables `e1_table.tex`–`e5_table.tex`, `seed_summary.tex`; figures `optimizer_comparison.png`, `lr_sensitivity.png`, `backbone_cost.png`; `outputs/results/experiments.csv`; cuts in `DECISIONS.md` D13 (E5 AdamW/RMSprop not run) and D14 (provenance incident). |
-| **CO5 — Results and insights** | Quantitative results with uncertainty, leakage finding, qualitative error analysis, limitations, and honest conclusions | Report §4.1–4.9; `outputs/results/final_results.tex`, `t1_table.tex`, `stats_table.tex`; `outputs/results/stats.json` / `stats.md` (bootstrap CIs, Wilson intervals, exact McNemar); `outputs/plots/accuracy_ci.png`, `roc_*.png`, `*_cm.png`, `gradcam_*contact_sheet.png`; `outputs/results/analysis.md`; limitations in report §4.9 and slides frame 23; leakage control numbers in `outputs/audit/leakage.json` and `outputs/results/final_results.tex`. |
+| **CO5 — Results and insights** | Quantitative results with uncertainty, leakage finding, qualitative error analysis, limitations, and honest conclusions | Report §4.1–4.9; `outputs/results/final_results.tex`, `t1_table.tex`, `stats_table.tex`; `outputs/results/stats.json` / `stats.md` (bootstrap CIs, Wilson intervals, exact McNemar); `outputs/plots/accuracy_ci.png`, `roc_*.png`, `*_cm.png`, `gradcam_*_compact.png`; `outputs/results/analysis.md`; limitations in report §4.9 and slides frame 23; leakage control numbers in `outputs/audit/leakage.json` and `outputs/results/final_results.tex`. |
 
 ## How to reproduce
 
@@ -35,7 +35,7 @@ bash scripts/run_b_grid.sh
   --preds --suffix released
 
 # 5. Statistics and figures
-./venv/bin/python scripts/stats.py --pairs "custom_final-s42:transfer_EfficientNetB0_final-s42"
+./venv/bin/python scripts/stats.py --pairs "custom_final-s42:transfer_EfficientNetB0_final-s42,custom_final-s43:transfer_EfficientNetB0_final-s43,custom_final-s44:transfer_EfficientNetB0_final-s44"
 ./venv/bin/python scripts/gradcam.py --ckpt transfer_EfficientNetB0_final-s42.keras \
   --data-dir Dataset_leakfree --label "B final (EfficientNetB0)"
 ./venv/bin/python scripts/make_figures.py
@@ -47,7 +47,7 @@ cd report && ../bin/tectonic report.tex && ../bin/tectonic slides_rubric.tex
 ## Status
 
 All five criteria have evidence in this repository. The only explicit cuts are
-E5 AdamW/RMSprop (CPU budget; `DECISIONS.md` D13), the 15-epoch cap on the
-released fixed-Model-A run (task requires at least 15; `DECISIONS.md` D11), and
-the provenance-only status of the original base runs after the smoke-test
-clobber (`DECISIONS.md` D14). These are documented as cuts, not hidden.
+E5 AdamW/RMSprop (CPU budget; `DECISIONS.md` D13), E2--E4 6+6 budgets
+instead of 8+8 (D12), the 15-epoch cap on the released fixed-Model-A run
+(D11), and the provenance-only status of the original base runs after the
+smoke-test clobber (D14). These are documented as cuts, not hidden.

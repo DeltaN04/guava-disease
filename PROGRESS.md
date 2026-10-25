@@ -10,8 +10,8 @@
 | 5 Research survey | DONE | 12-study table + families + gap in `survey.md`; 22-entry `references.bib`; all verified live; Pratama 2025 re-verified via Crossref 25 Oct 2026 (D15) |
 | 6 First Beamer deck | DONE (superseded) | 18 frames, Madrid navy/blue, 0 warnings, page-by-page PNG inspection; kept as `slides.tex/pdf` |
 | 7 Final QA (old deck) | DONE | smoke re-passed; no placeholders; README/analysis/slides committed at `d72a501` |
-| 8 Final experiments (branch `final-experiments`) | IN PROGRESS | Task 1 fixed A done: released **0.9634**, leak-free **0.9923**; E1 done (AdamW best 0.9829); E2 done (ref/FT 1e-4 best 0.9789); E3 done (unfreeze-all 0.9829); E4 done (EfficientNetB0 **0.9908**, ResNet50 0.9750); E5 done (Adam 0.9579, cosine 0.9553, SGD 0.9539); E6 B done (test 0.9949/0.9898/1.0000, mean 0.9949); E6 A uses fixed-A protocol, seeds 43/44 training (D19); per-image preds + stats next |
-| 9 Report + rubric + final QA | IN PROGRESS | `report/report.tex`, `report/slides_rubric.tex`, `RUBRIC_MAP.md`; compile + page inspection after E6 |
+| 8 Final experiments (branch `final-experiments`) | DONE | Task 1 fixed A: released **0.9634**, leak-free **0.9923**. E1 AdamW best 0.9829; E2 matched reference 0.9789; E3 unfreeze-all 0.9829; E4 EfficientNetB0 **0.9908**, ResNet50 0.9750. E5 Adam 0.9579, cosine 0.9553, SGD 0.9539. E6 B: 0.9949/0.9898/1.0000, mean **0.9949 ± 0.0051**. E6 A: 0.9923/0.9847/0.9413, mean **0.9728 ± 0.0275**. Paired stats: seeds 42/43 within noise; seed 44 significant (23/0, p<0.001). |
+| 9 Report + rubric + final QA | DONE | `report/report.tex` (10 pages, 0 warnings), `report/slides_rubric.tex` (24 frames, 0 overfull), `RUBRIC_MAP.md`; stats, CI, Grad-CAM, tables regenerated from executed runs. |
 
 ## Environment
 - `tf.config.list_physical_devices()` = CPU only (`PhysicalDevice CPU:0`).

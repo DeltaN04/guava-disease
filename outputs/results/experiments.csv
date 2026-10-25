@@ -16,10 +16,12 @@ transfer_ResNet50_e4-resnet,E4,leak-free,transfer_ResNet50,ResNet50,adam,0.001,1
 custom_e5-adam,E5,leak-free,custom_cnn,,adam,,,0.001,plateau,,8,42,0.9579,8,,,40.8,1243683,1241251,completed,"Adam, ReduceLROnPlateau, 8 epochs"
 custom_e5-adam-cosine,E5,leak-free,custom_cnn,,adam,,,0.001,cosine,,8,42,0.9553,7,,,28.9,1243683,1241251,completed,"Adam, cosine decay, 8 epochs"
 custom_e5-sgd,E5,leak-free,custom_cnn,,sgd,,,0.01,plateau,,8,42,0.9539,5,,,27.8,1243683,1241251,completed,"SGD Nesterov 0.9, lr 1e-2, ReduceLROnPlateau, 8 epochs"
-custom_final-s42,E6,leak-free,custom_cnn,,adam,,,0.001,plateau,,25,42,0.9737,16,0.9923,,144.7,1243683,1241251,completed,Task 1 fixed A seed 42; best checkpoint at epoch 16 of a 25-epoch budget; reused as final A reference
-transfer_EfficientNetB0_final-s42,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,42,0.9908,3,0.9949,,18.8,4378278,328707,completed,"reused E4 winner seed 42; EfficientNetB0 6+6, Adam"
-transfer_EfficientNetB0_final-s43,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,43,0.9921,2,0.9898,,28.5,4378278,328707,completed,"E6 best B seed 43; EfficientNetB0 6+6, Adam"
-transfer_EfficientNetB0_final-s44,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,44,0.9895,2,1.0,,28.6,4378278,328707,completed,"E6 best B seed 44; EfficientNetB0 6+6, Adam"
+custom_final-s42,E6,leak-free,custom_cnn,,adam,,,0.001,plateau,,25,42,0.9737,16,0.9923,0.9764,144.7,1243683,1241251,completed,Task 1 fixed A seed 42; best checkpoint at epoch 16 of a 25-epoch budget; reused as final A reference
+custom_final-s43,E6,leak-free,custom_cnn,,adam,,,0.001,plateau,,16,43,0.9697,11,0.9847,0.9791,59.5,1243683,1241251,completed,"E6 final A seed 43; fixed-A protocol, Adam 1e-3, 16-epoch budget (>=15 required)"
+custom_final-s44,E6,leak-free,custom_cnn,,adam,,,0.001,plateau,,16,44,0.9684,11,0.9413,0.9686,77.9,1243683,1241251,completed,"E6 final A seed 44; fixed-A protocol, Adam 1e-3, 16-epoch budget (>=15 required)"
+transfer_EfficientNetB0_final-s42,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,42,0.9908,3,0.9949,0.9948,18.8,4378278,328707,completed,"reused E4 winner seed 42; EfficientNetB0 6+6, Adam"
+transfer_EfficientNetB0_final-s43,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,43,0.9921,2,0.9898,0.9948,28.5,4378278,328707,completed,"E6 best B seed 43; EfficientNetB0 6+6, Adam"
+transfer_EfficientNetB0_final-s44,E6,leak-free,transfer_EfficientNetB0,EfficientNetB0,adam,0.001,1e-05,,plateau,30,12,44,0.9895,2,1.0,0.9895,28.6,4378278,328707,completed,"E6 best B seed 44; EfficientNetB0 6+6, Adam"
 custom_es-fixed,T1,released,custom_cnn,,adam,,,0.001,plateau,,15,42,0.9735,15,,0.9634,116.7,1243683,1241251,completed,fixed ES on val_accuracy; released split; 15-epoch cap (>=15 required)
 custom_es-fixed-leakfree,T1,leak-free,custom_cnn,,adam,,,0.001,plateau,,25,42,0.9737,16,0.9923,,144.7,1243683,1241251,completed,resumed old 16-epoch checkpoint; 25-epoch CPU-budget completion (D13)
 custom_leakfree,misc,,custom_cnn,,,,,,,,16,42,0.9737,,0.9923,,93.3,1243683,1241251,completed,

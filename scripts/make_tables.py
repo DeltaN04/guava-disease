@@ -43,27 +43,22 @@ def write(name: str, text: str) -> None:
 
 
 def final_table(exp: pd.DataFrame) -> None:
-    """Per-run final results (T1 + E6), including both test splits."""
+    """Per-run final results (T1 + E6), with leak-free and released columns."""
     df = exp[exp["task"].isin(["T1", "E6"])].copy()
     if df.empty:
         write("final_results.tex", "% no final runs yet\n")
         return
     rows = []
     for _, r in df.iterrows():
-        for split, col in (("leak-free", "test_acc"),
-                           ("released", "test_acc_released")):
-            if r.get(col, "") == "" or pd.isna(r.get(col)):
-                continue
-            rows.append((tex(r["run"]), split, fmt(r[col]),
-                         fmt(r["best_val_acc"]), f"{int(r['epochs'])}",
-                         f"{float(r['minutes']):.1f}",
-                         f"{int(r['params']):,}"))
+        rows.append((tex(r["run"]), fmt(r["test_acc"]),
+                     fmt(r["test_acc_released"]), fmt(r["best_val_acc"]),
+                     f"{int(r['epochs'])}", f"{float(r['minutes']):.1f}",
+                     f"{int(r['params']):,}"))
     body = "\\\\\n".join(" & ".join(x) for x in rows)
     write("final_results.tex", (
-        "\\begin{tabular}{llcccrr}\n\\toprule\n"
-        "Run & Test split & Test acc & Val acc & Epochs & Min & Params \\\\\n"
+        "\\begin{tabular}{lccccrr}\n\\toprule\n"
+        "Run & Leak-free & Released & Val acc & Epochs & Min & Params \\\\\n"
         "\\midrule\n" + body + " \\\\\n\\bottomrule\n\\end{tabular}\n"))
-
 
 def t1_table(exp: pd.DataFrame) -> None:
     """Task 1 fixed-Model-A table (released + leak-free rows)."""
@@ -127,7 +122,10 @@ def grid_table(exp: pd.DataFrame, task: str, name: str,
     rows = []
     for _, r in df.sort_values("run").iterrows():
         cfg = r["run"]
-        cfg = cfg.replace("transfer_MobileNetV2_", "").replace("custom_", "")
+        cfg = (cfg.replace("transfer_MobileNetV2_", "")
+                   .replace("transfer_EfficientNetB0_", "")
+                   .replace("transfer_ResNet50_", "")
+                   .replace("custom_", ""))
         extra = []
         if r.get("optimizer"):
             extra.append(str(r["optimizer"]))
@@ -237,7 +235,8 @@ def stats_table() -> None:
             f"{pair['accuracy_a']:.4f}", f"{pair['accuracy_b']:.4f}",
             f"{pair['delta_b_minus_a']:+.4f}",
             f"{pair['a_wrong_b_correct']}/{pair['a_correct_b_wrong']}",
-            f"{pair['p_exact']:.4f}", tex(verdict)))
+            (f"{pair['p_exact']:.4f}" if pair['p_exact'] >= 0.001
+             else "$<$0.001"), tex(verdict)))
     body = "\\\\\n".join(" & ".join(x) for x in rows)
     write("stats_table.tex", (
         "\\begin{tabular}{llcccccc l}\n\\toprule\n"

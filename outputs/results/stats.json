@@ -1,6 +1,6 @@
 {
   "runs": {
-    "custom_leakfree": {
+    "custom_final-s42": {
       "accuracy": 0.9923469387755102,
       "accuracy_boot_ci95": [
         0.9821428571428571,
@@ -19,99 +19,179 @@
       ],
       "test_set": "Dataset_leakfree"
     },
-    "transfer_MobileNetV2_leakfree": {
-      "accuracy": 0.9872448979591837,
+    "custom_final-s43": {
+      "accuracy": 0.9846938775510204,
       "accuracy_boot_ci95": [
-        0.9744897959183674,
-        0.9974489795918368
+        0.9719387755102041,
+        0.9948979591836735
       ],
-      "macro_f1": 0.9872254013975302,
+      "macro_f1": 0.9830006519661691,
       "macro_f1_boot_ci95": [
-        0.97439753309709,
-        0.9971281234448764
+        0.968169769949773,
+        0.994603785899189
       ],
       "n": 392,
-      "correct": 387,
+      "correct": 386,
       "accuracy_wilson_ci95": [
-        0.97049258748628,
-        0.9945398901512397
+        0.9670131764426446,
+        0.9929667751339457
       ],
       "test_set": "Dataset_leakfree"
     },
-    "transfer_MobileNetV2_frozen": {
-      "accuracy": 0.9947643979057592,
+    "custom_final-s44": {
+      "accuracy": 0.9413265306122449,
       "accuracy_boot_ci95": [
-        0.9869109947643979,
-        1.0
+        0.9183673469387755,
+        0.9642857142857143
       ],
-      "macro_f1": 0.9941519895860346,
+      "macro_f1": 0.9392304060655071,
       "macro_f1_boot_ci95": [
-        0.9852794675677214,
-        1.0
+        0.9146727842338723,
+        0.9617788118300931
       ],
-      "n": 382,
-      "correct": 380,
+      "n": 392,
+      "correct": 369,
       "accuracy_wilson_ci95": [
-        0.9811135711558283,
-        0.9985630629862654
+        0.9134987771933226,
+        0.9605882313474675
       ],
-      "test_set": "Dataset"
+      "test_set": "Dataset_leakfree"
     },
-    "transfer_MobileNetV2_noaug": {
-      "accuracy": 0.9947643979057592,
+    "transfer_EfficientNetB0_final-s42": {
+      "accuracy": 0.9948979591836735,
       "accuracy_boot_ci95": [
-        0.9869109947643979,
+        0.9872448979591837,
         1.0
       ],
-      "macro_f1": 0.9946268395812737,
+      "macro_f1": 0.9949554470035457,
       "macro_f1_boot_ci95": [
-        0.9862528463969379,
+        0.9871911304421657,
         1.0
       ],
-      "n": 382,
-      "correct": 380,
+      "n": 392,
+      "correct": 390,
       "accuracy_wilson_ci95": [
-        0.9811135711558283,
-        0.9985630629862654
+        0.9815903069910283,
+        0.9985997488292797
       ],
-      "test_set": "Dataset"
+      "test_set": "Dataset_leakfree"
+    },
+    "transfer_EfficientNetB0_final-s43": {
+      "accuracy": 0.9897959183673469,
+      "accuracy_boot_ci95": [
+        0.9795918367346939,
+        0.9974489795918368
+      ],
+      "macro_f1": 0.9884348747131906,
+      "macro_f1_boot_ci95": [
+        0.9755354001711717,
+        0.9972978033948827
+      ],
+      "n": 392,
+      "correct": 388,
+      "accuracy_wilson_ci95": [
+        0.9740600624946553,
+        0.9960249412037937
+      ],
+      "test_set": "Dataset_leakfree"
+    },
+    "transfer_EfficientNetB0_final-s44": {
+      "accuracy": 1.0,
+      "accuracy_boot_ci95": [
+        1.0,
+        1.0
+      ],
+      "macro_f1": 1.0,
+      "macro_f1_boot_ci95": [
+        1.0,
+        1.0
+      ],
+      "n": 392,
+      "correct": 392,
+      "accuracy_wilson_ci95": [
+        0.9902951079421666,
+        0.9999999999999999
+      ],
+      "test_set": "Dataset_leakfree"
     }
   },
   "pairs": [
     {
-      "a": "custom_leakfree",
-      "b": "transfer_MobileNetV2_leakfree",
+      "a": "custom_final-s42",
+      "b": "transfer_EfficientNetB0_final-s42",
       "test_set": "Dataset_leakfree",
       "accuracy_a": 0.9923469387755102,
-      "accuracy_b": 0.9872448979591837,
-      "delta_b_minus_a": -0.005102040816326481,
+      "accuracy_b": 0.9948979591836735,
+      "delta_b_minus_a": 0.0025510204081633514,
+      "delta_images": 1.0000000000000338,
+      "verdict": "within noise at alpha=0.05",
+      "n_pairs": 392,
+      "a_correct_b_wrong": 1,
+      "a_wrong_b_correct": 2,
+      "discordant": 3,
+      "mcnemar_chi2": 0.0,
+      "p_exact": 1.0,
+      "p_chi2_continuity": 1.0
+    },
+    {
+      "a": "custom_final-s43",
+      "b": "transfer_EfficientNetB0_final-s43",
+      "test_set": "Dataset_leakfree",
+      "accuracy_a": 0.9846938775510204,
+      "accuracy_b": 0.9897959183673469,
+      "delta_b_minus_a": 0.005102040816326481,
       "delta_images": 1.9999999999999805,
       "verdict": "within noise at alpha=0.05",
       "n_pairs": 392,
-      "a_correct_b_wrong": 5,
-      "a_wrong_b_correct": 3,
-      "discordant": 8,
-      "mcnemar_chi2": 0.125,
-      "p_exact": 0.7265625,
-      "p_chi2_continuity": 0.7236736098317629
+      "a_correct_b_wrong": 4,
+      "a_wrong_b_correct": 6,
+      "discordant": 10,
+      "mcnemar_chi2": 0.1,
+      "p_exact": 0.75390625,
+      "p_chi2_continuity": 0.7518296340458492
     },
     {
-      "a": "transfer_MobileNetV2_frozen",
-      "b": "transfer_MobileNetV2_noaug",
-      "test_set": "Dataset",
-      "accuracy_a": 0.9947643979057592,
-      "accuracy_b": 0.9947643979057592,
-      "delta_b_minus_a": 0.0,
-      "delta_images": 0.0,
-      "verdict": "within noise at alpha=0.05",
-      "n_pairs": 382,
-      "a_correct_b_wrong": 1,
-      "a_wrong_b_correct": 1,
-      "discordant": 2,
-      "mcnemar_chi2": 0.5,
-      "p_exact": 1.0,
-      "p_chi2_continuity": 0.47950012218695337
+      "a": "custom_final-s44",
+      "b": "transfer_EfficientNetB0_final-s44",
+      "test_set": "Dataset_leakfree",
+      "accuracy_a": 0.9413265306122449,
+      "accuracy_b": 1.0,
+      "delta_b_minus_a": 0.058673469387755084,
+      "delta_images": 22.999999999999993,
+      "verdict": "significant",
+      "n_pairs": 392,
+      "a_correct_b_wrong": 0,
+      "a_wrong_b_correct": 23,
+      "discordant": 23,
+      "mcnemar_chi2": 21.043478260869566,
+      "p_exact": 2.384185791015625e-07,
+      "p_chi2_continuity": 4.48978449863863e-06
     }
   ],
-  "seed_groups": {}
+  "seed_groups": {
+    "custom_final": {
+      "runs": [
+        "custom_final-s42",
+        "custom_final-s43",
+        "custom_final-s44"
+      ],
+      "n_seeds": 3,
+      "accuracy_mean": 0.9727891156462585,
+      "accuracy_std": 0.027514778379869775,
+      "macro_f1_mean": 0.9718133734209403,
+      "macro_f1_std": 0.028675603416465828
+    },
+    "transfer_EfficientNetB0_final": {
+      "runs": [
+        "transfer_EfficientNetB0_final-s42",
+        "transfer_EfficientNetB0_final-s43",
+        "transfer_EfficientNetB0_final-s44"
+      ],
+      "n_seeds": 3,
+      "accuracy_mean": 0.9948979591836734,
+      "accuracy_std": 0.005102040816326536,
+      "macro_f1_mean": 0.9944634405722454,
+      "macro_f1_std": 0.005798239687287019
+    }
+  }
 }

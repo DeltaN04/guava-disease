@@ -1,0 +1,56 @@
+{
+  "run": "transfer_EfficientNetB0_final-s43",
+  "test_accuracy": 0.9947643979057592,
+  "macro_precision": 0.9939286481839673,
+  "macro_recall": 0.9939286481839673,
+  "macro_f1": 0.9939286481839673,
+  "macro_auc": 0.9999002435704565,
+  "per_class": {
+    "Anthracnose": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "auc": 1.0,
+      "support": 156
+    },
+    "fruit_fly": {
+      "precision": 0.9924242424242424,
+      "recall": 0.9924242424242424,
+      "f1": 0.9924242424242424,
+      "auc": 0.9998484848484849,
+      "support": 132
+    },
+    "healthy_guava": {
+      "precision": 0.9893617021276596,
+      "recall": 0.9893617021276596,
+      "f1": 0.9893617021276596,
+      "auc": 0.9998522458628842,
+      "support": 94
+    }
+  },
+  "confusion_matrix": [
+    [
+      156,
+      0,
+      0
+    ],
+    [
+      0,
+      131,
+      1
+    ],
+    [
+      0,
+      1,
+      93
+    ]
+  ],
+  "run_id": "transfer_EfficientNetB0_final-s43__released",
+  "data_dir": "Dataset",
+  "n_test": 382,
+  "class_names": [
+    "Anthracnose",
+    "fruit_fly",
+    "healthy_guava"
+  ]
+}
