@@ -2,32 +2,29 @@
 
 | Phase | Status | Key numbers / notes |
 |---|---|---|
-| 0 Recon + setup | DONE | macOS 25.5 arm64, Py3.12, TF 2.21 CPU-only, Tectonic 0.17.0; venv + requirements installed; dataset staged at `Dataset/` |
-| 1 Dataset audit | DONE | 3784 files, 0 corrupt, all 512x512 RGB PNG; val=755 on disk vs 775 expected (discrepancy reported); **leakage: 100% of val+test share an original with train (454/473 originals span splits)**; `Dataset_leakfree/` built; figs in `outputs/audit/` |
-| 2 Implementation + smoke test | DONE (bugfix 9 Oct) | custom CNN + MobileNetV2 transfer (two-phase) implemented; **train/val skew bug found+fixed** (`value_range=(0,1)`, see D8); post-fix smoke (64 imgs, 2 epochs): custom train acc 0.53-0.56, transfer val_acc 0.83; save/reload parity True; fine-tune OK (1839427/2586691 trainable) |
-| 3 Experiments | DONE | A base 9ep val 0.9364 (31.6min), B base 15+20 val 0.9960 (14.5min); frozen 15ep 0.9907, noaug 15+18 0.9974; leakfree: A-partial 17/40 best 0.9737, B 15+17 0.9855. Weights/logs gitignored (large); metrics+tables committed; repro via `train.py` |
-| 7 Final QA + handoff | DONE | smoke re-passed post-fix; 0 Beamer warnings; 18/18 pages PNG-inspected; no placeholders; README+analysis+slides committed |
-| 4 Evaluation + analysis | DONE (base) | test: A 0.9110/F1 0.9173/AUC 0.9949, B 0.9921/0.9911/0.9999, frozen 0.9948, noaug 0.9948; CMs (A: 26 Anthracnose→FF; B: 3 errs), ROC, loss/acc curves, Grad-CAM panels, `outputs/results/analysis.md` |
-| 5 Research survey | DONE | 12-study table (§8) + families (§9) + gap (§10) in `survey.md`; 22-entry `references.bib`; all verified live 9 Oct; Pratama 2025 explicitly dropped (unverifiable) |
-| 6 Beamer slides | DONE | 18 frames, Madrid navy/blue, footline, booktabs real table, CM+Grad-CAM, refs, thank-you; Tectonic compiles; page-by-page PNG inspect, 2 table overflows fixed |
-| 7 Final QA + handoff | TODO | — |
+| 0 Recon + setup | DONE | macOS 26.5 arm64, Py3.12, TF 2.21 CPU-only, Tectonic 0.17.0; venv + requirements installed; dataset staged at `Dataset/` |
+| 1 Dataset audit | DONE | 3784 files, 0 corrupt, all 512x512 RGB PNG; val=755 on disk vs 775 expected (discrepancy reported); **leakage: 100% of val+test share an original with train (454/473 originals span splits)**; `Dataset_leakfree/` built (train 2632 / val 760 / test 392, 0/473 clusters span) |
+| 2 Implementation + smoke test | DONE (bugfix 9 Oct) | custom CNN + MobileNetV2 transfer (two-phase) implemented; **train/val skew bug found+fixed** (`value_range=(0,1)`, D8); post-fix smoke save/reload parity True |
+| 3 Original experiments | DONE (provenance) | A base 9ep val 0.9364 (31.6min), B base 15+20 val 0.9960 (14.5min); frozen 15ep 0.9907, noaug 15+18 0.9974; leakfree: A-partial 16/40 best 0.9737, B 15+17 0.9855. **Base meta/checkpoints clobbered by a later smoke test (D14); metrics JSONs survive and are provenance only.** |
+| 4 Evaluation + analysis | DONE (old runs) | test: A 0.9110/F1 0.9173/AUC 0.9949, B 0.9921/0.9911/0.9999, frozen 0.9948, noaug 0.9948; CMs, ROC, curves, Grad-CAM; `outputs/results/analysis.md` |
+| 5 Research survey | DONE | 12-study table + families + gap in `survey.md`; 22-entry `references.bib`; all verified live; Pratama 2025 re-verified via Crossref 25 Oct 2026 (D15) |
+| 6 First Beamer deck | DONE (superseded) | 18 frames, Madrid navy/blue, 0 warnings, page-by-page PNG inspection; kept as `slides.tex/pdf` |
+| 7 Final QA (old deck) | DONE | smoke re-passed; no placeholders; README/analysis/slides committed at `d72a501` |
+| 8 Final experiments (branch `final-experiments`) | IN PROGRESS | Task 1 fixed A (15-epoch released; leak-free resume 16→25); E1–E4 grid on leak-free val; E5 Adam/SGD/cosine (8 epochs); E6 seeds 42/43/44; per-image preds + stats; E5 AdamW/RMSprop cut (D13) |
+| 9 Report + rubric + final QA | IN PROGRESS | `report/report.tex`, `report/slides_rubric.tex`, `RUBRIC_MAP.md`; compile + page inspection after E6 |
 
-## Phase 0 detail
+## Environment
 - `tf.config.list_physical_devices()` = CPU only (`PhysicalDevice CPU:0`).
-  Fallback per brief rule 7: IMG_SIZE 224, BATCH 32, seed 42 (see DECISIONS.md).
-- Zip-level counts: train 1080+918+649=2647 (expected 2647 OK);
-  val 308+262+185=755 (expected 775, mismatch of 20 — audit to confirm);
-  test 156+132+94=382 (expected 382 OK). Total 3784.
-- Class folders on disk: `Anthracnose`, `fruit_fly`, `healthy_guava`.
-- Toolchain: venv (`venv/`), `requirements.txt` installed OK
-  (tensorflow 2.21.0, numpy 2.5.3, pandas 3.0.6, matplotlib 3.11.2,
-  seaborn 0.13.2, scikit-learn 1.9.1, pillow 12.3.0, ImageHash 4.3.2,
-  tqdm 4.70.1). Tectonic binary in `bin/`.
+  Fallback per brief: IMG_SIZE 224, BATCH 32, seed 42 (D1).
+- Dataset on disk: released train 2647 / val 755 / test 382;
+  leak-free train 2632 / val 760 / test 392.
+- Toolchain: venv (`venv/`), `bin/tectonic` 0.17.0, PyMuPDF for page inspection.
 
-## Phase 3 detail (live)
-- `custom_base` started 21:57 IST; epoch 1: loss 1.6024, acc 0.3476,
-  val_loss 1.5664, val_acc 0.3470, val_auc 0.5874. Checkpoint saved
-  (`outputs/models/custom_base.keras`, 14 MB). Pace ~169 s/epoch.
-- Plan (sequential): custom_base -> transfer_MobileNetV2_base (15 head + 20 FT)
-  -> frozen + noaug + leakfree ablations -> evaluate -> Grad-CAM -> figures.
-
+## Reproducibility
+- Every run writes `outputs/logs/<run>.csv`, `<run>_meta.json`, and best/final
+  `.keras` checkpoints. `outputs/logs/` and `*.keras` are gitignored (large);
+  metrics, tables and figures are committed.
+- `train.py` skips a run when its meta+best checkpoint exist; use `--force`
+  only for an intentional rerun.
+- Experiment commands: `scripts/run_b_grid.sh` (E1–E4), `scripts/run_e5.sh`
+  (E5), and the Task-1/E6 commands documented in `RUBRIC_MAP.md`.

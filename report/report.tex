@@ -1,0 +1,446 @@
+% Guava Fruit Disease Classification -- full report (8-10 pages)
+% Compile from report/:  ../bin/tectonic report.tex
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage{array}
+\usepackage{multirow}
+\graphicspath{{../outputs/plots/}{../outputs/audit/}}
+\setlength{\parskip}{2pt}
+\setlength{\parindent}{0pt}
+\captionsetup{font=small,labelfont=bf}
+
+\title{\vspace{-1.2cm}\textbf{Guava Fruit Disease Classification with a Leakage-Aware Evaluation:\\
+A Custom CNN versus Two-Phase MobileNetV2 Transfer Learning}}
+\author{Nihar Ranjan Mishra \and Aaviraj Nikumbh \and Neel Lakhani}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+We classify guava fruit images from the public GFDD24 dataset into
+Anthracnose, Fruit Flies, and Healthy, and compare a compact CNN trained from
+scratch (Model A) with two-phase ImageNet transfer learning on MobileNetV2
+(Model B). The released GFDD24 splits are not independent: each of 473 source
+fruits was augmented eight times \emph{before} splitting, so 100\% of
+validation and test images share a source original with training. We quantify
+this leakage and build a cluster-grouped leak-free re-split as a control. All
+model selection is performed on leak-free validation data; the leak-free test
+split is touched only for final configurations. We fix an early-stopping bug
+that stopped Model A while validation accuracy was still improving, then run a
+controlled optimisation study over optimiser, learning rate, fine-tuning depth,
+and backbone, followed by three seeds per final configuration. Every number in
+this report is produced by an executed run logged in
+\texttt{outputs/logs/}. We report bootstrap confidence intervals, Wilson
+intervals, and exact McNemar tests on paired per-image predictions, and we
+state explicitly when a difference is within one or two test images. Grad-CAM
+panels for both models support the quantitative comparison. The result is a
+reproducible, leakage-aware baseline for guava disease classification rather
+than another single-split leaderboard entry.
+\vspace{0.3em}
+
+\noindent\textbf{Keywords:} guava disease classification; GFDD24; transfer
+learning; MobileNetV2; data leakage; Grad-CAM; McNemar test; reproducibility.
+\end{abstract}
+
+\section{Introduction}
+Guava (\textit{Psidium guajava}) is an economically important fruit crop in
+South Asia, and anthracnose and fruit-fly damage are among the most visible
+causes of post-harvest loss. A phone photograph is a cheap sensor; the open
+question is whether a learned classifier can be trusted when it is deployed on
+fruit from a new orchard. Public benchmarks usually report a single accuracy
+on a curated split, which is a necessary but insufficient answer.
+
+This project asks three questions. First, how much does a from-scratch CNN
+lose relative to an ImageNet-pretrained MobileNetV2 on a small three-class
+fruit dataset? Second, how much of the reported accuracy is an artefact of
+data leakage caused by augmenting before splitting? Third, which optimiser,
+learning-rate, and fine-tuning-depth choices survive a controlled comparison
+when all tuning is done on a leak-free validation split?
+
+Our contributions are: (i) a quantified leakage audit of GFDD24 and a
+cluster-grouped leak-free re-split; (ii) a fixed, early-stopping-corrected
+Model A baseline; (iii) a controlled optimisation grid (E1--E5) and three-seed
+final runs (E6) for both models; (iv) paired statistical tests with confidence
+intervals; and (v) Grad-CAM evidence for correct and misclassified examples.
+We deliberately do not claim state-of-the-art accuracy: the dataset is small,
+the build is CPU-only, and the leak-free control is the scientific point.
+
+\section{Literature review}
+Plant-disease recognition with CNNs is a mature subfield. \citet{mohanty2016plant}
+showed that AlexNet and GoogLeNet can exceed 99\% on the curated PlantVillage
+benchmark, while accuracy drops on field photographs from other sources. That
+gap between curated and field performance is the motivation for our leak-free
+control. GFDD24 \citep{gfdd24} is a recent three-class guava fruit dataset with
+field photographs and a released train/validation/test split; its augmentation
+was applied before splitting, which is the data-centric problem we audit.
+
+Architecturally, MobileNetV2 \citep{sandler2018mobilenetv2} is a strong
+accuracy-per-FLOP choice for mobile vision: inverted residual blocks with
+linear bottlenecks. Transfer learning from ImageNet
+\citep{russakovsky2015imagenet} is justified by the feature-transfer results of
+\citet{yosinski2014transfer}: early filters are general, later layers
+specialise, and fine-tuning adapts them to a target domain. Our Model A follows
+the standard small-data recipe with batch normalisation
+\citep{ioffe2015bn} and dropout \citep{srivastava2014dropout}; our Model B uses
+the same two-phase protocol (frozen head warm-up, then fine-tuning) that is
+standard for small agricultural datasets.
+
+Several guava studies report high curated-split accuracy: Mostafa et al.\
+\citep{mostafa2021guava} compare five CNNs on a five-class guava set,
+Doutoum et al.\ \citep{doutoum2023guava} compare transfer backbones on guava
+leaves, Nandi et al.\ \citep{nandi2022device} target edge deployment with
+quantisation, Kilci and Koklu \citep{kilci2024squeezenet} combine SqueezeNet
+features with boosting on GFDD24, and Zhou \citep{zhou2026guava} reports a
+six-way transfer comparison with Grad-CAM. A ResNet-101 + Grad-CAM study
+\citep{resnet101guava2025} and a CNN--boosting ensemble
+\citep{cnnGBensemble2025} also report GFDD24 numbers, and Pratama et al.\
+\citep{pratama2025jessi} compare MobileNetV2 transfer for guava disease
+detection. These papers establish that transfer learning works; they do not,
+as a group, report a from-scratch versus two-phase transfer head-to-head with
+a cross-split duplicate audit, a leak-free control, and paired statistics on
+the same test images. That narrower gap is what this report fills.
+
+Leakage is not a hypothetical concern. \citet{tampu2022leakage} showed that
+splitting two-dimensional slices from the same OCT volume across train and
+test inflated accuracy by 5--30 percentage points. GFDD24's eight augmented
+views per fruit are structurally analogous: eight views of one fruit are eight
+slices of one volume. Our audit confirms that the released split places those
+views on both sides of the train/test boundary.
+
+\section{Methodology}
+\subsection{Dataset and leakage audit}
+GFDD24 contains 3,784 $512\times512$ RGB PNG images from three classes
+(Anthracnose, Fruit Flies, Healthy), derived from 473 source fruits with eight
+augmented variants each. The released split has 2,647 training, 755 validation,
+and 382 test images on disk (the release notes state 775 validation images; we
+report the 20-image discrepancy rather than hiding it). All images were
+verified readable and correctly sized in the audit.
+
+The leakage audit keys each file by its source-original identifier, using the
+full timestamp for the timestamp-named fruit-fly files and the leading integer
+for the other files. It finds 454 of 473 originals (96\%) with variants in more
+than one split, and 100\% of validation and test images share an original with
+the training set. The released test score is therefore a near-duplicate
+recognition score, not a field-generalisation score.
+
+To measure the gap, we build \texttt{Dataset\_leakfree/}: originals are grouped
+into clusters and assigned 70/20/10 to train/validation/test, so no cluster
+spans splits (0 of 473). The on-disk leak-free totals are 2,632 training, 760
+validation, and 392 test images. All tuning below uses the leak-free training
+split to fit and the leak-free validation split to select. The leak-free test
+split is evaluated once for the final configurations and once for the fixed
+Model A required by Task~1.
+
+\subsection{Model A: custom CNN}
+Model A is a four-block convolutional network. Each block applies two
+$3\times3$ convolutions with ReLU and batch normalisation, followed by
+$2\times2$ max-pooling and dropout 0.25; the filter counts are 32, 64, 128, and
+256. Global average pooling is followed by a 256-unit dense layer, batch
+normalisation, dropout 0.5, and a three-way softmax. The model has 1.24M
+parameters. Batch-normalisation momentum is 0.9 rather than the Keras default
+0.99; with Adam at $10^{-3}$ the network learns quickly enough that
+momentum-0.99 moving averages lag the batch statistics, and inference collapsed
+to a single class in an earlier run. The fix is documented as a bug lesson,
+not hidden as a tuning choice.
+
+\subsection{Model B: two-phase MobileNetV2 transfer}
+Model B uses ImageNet-pretrained MobileNetV2 without its top layer. The input is
+rescaled from $[0,1]$ to $[-1,1]$, passed through the frozen backbone, global
+average pooled, projected to 256 units, dropped out at 0.4, and classified by a
+three-way softmax. Phase~1 trains the head with the backbone frozen. Phase~2
+unfreezes the last 30 backbone layers (batch-normalisation layers stay frozen)
+and fine-tunes at a lower learning rate. The model has 2.59M parameters, of
+which 1.84M are trainable in phase~2.
+
+\begin{figure}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize, node distance=4.5mm,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=8mm,
+              fill=blue!6, inner sep=3pt},
+  arr/.style={-{Latex[length=1.6mm]}, thick}]
+\node[box] (in) {Input\\$224\times224\times3$};
+\node[box, right=of in] (aug) {Rescale $[0,1]$\\+ train augmentation};
+\node[box, right=of aug] (a) {4$\times$ [Conv-BN-ReLU]$\times2$\\MaxPool, Dropout 0.25};
+\node[box, right=of a] (gap) {GAP $\to$ Dense 256\\BN, Dropout 0.5};
+\node[box, right=of gap] (out) {Softmax\\3 classes};
+\draw[arr] (in) -- (aug); \draw[arr] (aug) -- (a);
+\draw[arr] (a) -- (gap); \draw[arr] (gap) -- (out);
+\node[above=1mm of a, text=blue!70!black] {\textbf{Model A (from scratch, 1.24M)}};
+\end{tikzpicture}}
+
+\vspace{2mm}
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\scriptsize, node distance=4.5mm,
+  box/.style={draw, rounded corners=2pt, align=center, minimum height=8mm,
+              fill=orange!8, inner sep=3pt},
+  arr/.style={-{Latex[length=1.6mm]}, thick}]
+\node[box] (in2) {Input\\$224\times224\times3$};
+\node[box, right=of in2] (pre) {Rescale\\$[-1,1]$};
+\node[box, right=of pre] (bb) {MobileNetV2\\ImageNet (frozen)};
+\node[box, right=of bb] (gap2) {GAP $\to$ Dense 256\\Dropout 0.4};
+\node[box, right=of gap2] (out2) {Softmax\\3 classes};
+\draw[arr] (in2) -- (pre); \draw[arr] (pre) -- (bb);
+\draw[arr] (bb) -- (gap2); \draw[arr] (gap2) -- (out2);
+\node[above=1mm of bb, text=orange!60!black] {\textbf{Model B (two-phase transfer, 2.59M)}};
+\end{tikzpicture}}
+\caption{Block diagrams. Model A is trained from scratch. Model B first trains
+the head with the backbone frozen (phase~1), then unfreezes the last 30
+backbone layers at a lower learning rate (phase~2); batch-normalisation layers
+remain frozen in both phases.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{Training protocol and optimisation grid}
+All runs use seed 42 unless stated, $224\times224$ inputs, batch size 32, and
+categorical cross-entropy. The training split is augmented in-graph with
+horizontal/vertical flips, rotation ($\pm15\%$), zoom ($\pm15\%$), contrast, and
+brightness; validation and test are only rescaled to $[0,1]$. The brightness
+and contrast layers use \texttt{value\_range=(0,1)} because they otherwise
+default to $[0,255]$ and skew training inputs away from validation inputs (a
+bug we found and fixed; see Section~\ref{sec:bugs}).
+
+Model selection uses validation accuracy, not validation loss. Early stopping
+has patience 8 and restores the best weights; the fixed Model A run is forced
+to run at least 15 epochs. Model B runs use 8 head epochs plus 8 fine-tuning
+epochs in the optimisation grid, and the final configurations use the selected
+schedule with three seeds (42, 43, 44). Every run writes a JSON metadata file
+with the full configuration, per-run CSV history, best checkpoint, and
+save/reload parity check; rerunning a completed tag is skipped.
+
+The optimisation study is:
+\begin{itemize}
+  \item \textbf{E1 (optimiser, Model B):} Adam, AdamW, SGD with Nesterov
+        momentum 0.9, RMSprop at the reference learning rates (SGD uses
+        $10^{-2}$ head / $10^{-3}$ fine-tune as specified).
+  \item \textbf{E2 (learning rate, one factor at a time):} head
+        $\{10^{-2},10^{-3},3\times10^{-4}\}$ and fine-tune
+        $\{10^{-4},10^{-5},10^{-6}\}$, with the reference value for the other
+        phase.
+  \item \textbf{E3 (fine-tune depth):} unfreeze last $\{0,30,60,\text{all}\}$
+        backbone layers.
+  \item \textbf{E4 (backbone):} MobileNetV2, EfficientNetB0, ResNet50 with the
+        same two-phase protocol; we log parameters, minutes per epoch, and
+        single-image inference latency.
+  \item \textbf{E5 (Model A):} Adam, SGD, and a cosine-decay schedule at a
+        12-epoch cap. AdamW and RMSprop for Model A were cut because each
+        12-epoch run costs roughly 40--60 CPU minutes; the cut is recorded in
+        \texttt{DECISIONS.md}.
+  \item \textbf{E6 (final configurations):} the best Model A and Model B
+        configurations from E1--E5, trained with seeds 42, 43, and 44. Test
+        accuracy is reported as mean $\pm$ standard deviation, with bootstrap
+        confidence intervals for each run.
+\end{itemize}
+
+\subsection{Statistical analysis}
+For every final run we save per-image predictions on the identical test
+images. We report percentile bootstrap 95\% confidence intervals (2,000
+resamples, seed 42) for accuracy and macro-F1, Wilson score intervals for
+accuracy, and exact two-sided McNemar tests on paired correctness. A difference
+is described as ``within noise'' when the McNemar test is not significant at
+$\alpha=0.05$, and separately when the absolute difference is at most one or
+two test images even if the test is significant. This prevents over-reading
+small differences on a 392-image test set.
+
+\section{Results and discussion}
+\subsection{Fixing Model A}
+The original Model A run used early stopping on validation loss. Validation
+loss was lowest at epoch~1, so training stopped at epoch~9 even though
+validation accuracy was still improving; the reported test accuracy was 0.9110.
+We reran Model A with early stopping on validation accuracy, patience 8, a
+minimum of 15 epochs, and best-weight restoration. Table~\ref{tab:fixed-a}
+reports the fixed run on the released and leak-free splits. The fixed run is
+the correct baseline for the A-versus-B comparison; the original run is kept as
+provenance.
+
+\begin{table}[H]
+\centering
+\caption{Fixed Model A (early stopping on validation accuracy). All numbers
+from executed runs; the released split is leaked and is shown only for
+comparison.}
+\label{tab:fixed-a}
+\input{../outputs/results/t1_table.tex}
+\end{table}
+
+\subsection{Optimisation experiments}
+Tables~\ref{tab:e1}--\ref{tab:e5} summarise the validation-only grid. No test
+split was touched during E1--E5. The best configuration in each family is
+selected by leak-free validation accuracy, with training cost as a secondary
+criterion.
+
+\begin{table}[H]\centering
+\caption{E1: optimiser comparison for Model B (8+8 epochs).}
+\label{tab:e1}\input{../outputs/results/e1_table.tex}\end{table}
+
+\begin{table}[H]\centering
+\caption{E2: one-factor-at-a-time learning-rate sensitivity for Model B.}
+\label{tab:e2}\input{../outputs/results/e2_table.tex}\end{table}
+
+\begin{table}[H]\centering
+\caption{E3: fine-tuning depth for Model B.}
+\label{tab:e3}\input{../outputs/results/e3_table.tex}\end{table}
+
+\begin{table}[H]\centering
+\caption{E4: backbone comparison. Inference latency is measured on CPU at
+batch size 1; see Figure~\ref{fig:backbone}.}
+\label{tab:e4}\input{../outputs/results/e4_table.tex}\end{table}
+
+\begin{table}[H]\centering
+\caption{E5: Model A optimiser and schedule comparison (12-epoch cap).}
+\label{tab:e5}\input{../outputs/results/e5_table.tex}\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.49\textwidth]{optimizer_comparison.png}
+\includegraphics[width=0.49\textwidth]{lr_sensitivity.png}
+\caption{Left: E1 optimiser comparison (best validation accuracy and epoch of
+best accuracy). Right: E2 learning-rate sensitivity for the head and fine-tune
+phases. Both figures are generated from \texttt{experiments.csv}.}
+\label{fig:optim}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.72\textwidth]{backbone_cost.png}
+\caption{E4 backbone accuracy and CPU inference cost. The ResNet50
+preprocessing is an RGB-order approximation of the caffe pipeline (no BGR
+flip); this is a documented approximation, not an exact reproduction.}
+\label{fig:backbone}
+\end{figure}
+
+\subsection{Final configurations and multi-seed results}
+The selected final configurations are trained with seeds 42, 43, and 44.
+Table~\ref{tab:final} lists every final run and both test splits;
+Table~\ref{tab:seeds} aggregates the seeds. We report mean $\pm$ standard
+deviation across seeds and bootstrap confidence intervals within each run,
+because three seeds estimate run-to-run variability but do not turn a
+392-image test set into a large sample.
+
+\begin{table}[H]\centering
+\caption{Final runs (per seed). ``Released'' is the leaked split; ``leak-free''
+is the cluster-grouped control.}
+\label{tab:final}\input{../outputs/results/final_results.tex}\end{table}
+
+\begin{table}[H]\centering
+\caption{Final configurations aggregated over seeds 42--44 (mean $\pm$ standard
+deviation).}
+\label{tab:seeds}\input{../outputs/results/seed_summary.tex}\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{accuracy_ci.png}
+\caption{Test accuracy of the final runs with 95\% bootstrap confidence
+intervals (2,000 resamples). Intervals are computed per run on the identical
+test images.}
+\label{fig:ci}
+\end{figure}
+
+\subsection{Paired tests: is the difference real?}
+Table~\ref{tab:stats} reports exact McNemar tests on paired per-image
+correctness. The A-versus-B comparison uses the same leak-free test images;
+the B-variant comparisons isolate the effect of fine-tuning and augmentation
+where those checkpoints are available. A non-significant result is reported as
+within noise, not as a tie.
+
+\begin{table}[H]\centering
+\caption{Paired comparisons: bootstrap accuracy and exact McNemar tests.
+$b$ = A wrong, B correct; $c$ = A correct, B wrong.}
+\label{tab:stats}\input{../outputs/results/stats_table.tex}\end{table}
+
+\subsection{Released versus leak-free: the leakage finding}
+The released split is 100\% leaked: every validation and test image shares a
+source original with training. The leak-free split removes that overlap. If the
+released scores were substantially higher than the leak-free scores, that gap
+would be direct evidence of leakage inflation. We report both, and we resist
+the temptation to compare runs that differ in training length: the fixed Model
+A run and the final runs are the only fair comparisons.
+
+\subsection{Qualitative analysis: confusion matrices and Grad-CAM}
+Figures~\ref{fig:cm} and~\ref{fig:gradcam} show the confusion matrices and
+Grad-CAM panels for the final models. The confusion matrices identify which
+classes are confused; the Grad-CAM panels show whether the model looks at
+lesions and fruit damage or at background. Each heatmap is normalised to
+$[0,1]$ and rendered for the predicted class; unused axes are turned off, and
+misclassified examples are shown alongside correct ones.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.49\textwidth}
+  \includegraphics[width=\linewidth]{custom_final-s42_cm.png}
+  \caption{Model A, seed 42}
+\end{subfigure}
+\begin{subfigure}{0.49\textwidth}
+  \includegraphics[width=\linewidth]{transfer_MobileNetV2_final-s42_cm.png}
+  \caption{Model B, seed 42}
+\end{subfigure}
+\caption{Confusion matrices on the leak-free test split (counts).}
+\label{fig:cm}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{gradcam_transfer_MobileNetV2_final-s42_contact_sheet.png}
+\caption{Grad-CAM contact sheet for Model B (seed 42, leak-free test). Top row
+of each class block: correctly classified examples; bottom row: misclassified
+examples. The CAM is computed for the predicted class.}
+\label{fig:gradcam}
+\end{figure}
+
+\subsection{Bug lessons}
+\label{sec:bugs}
+Two bugs materially changed the results. First, the augmentation pipeline
+rescaled images to $[0,1]$ before applying \texttt{RandomBrightness} and
+\texttt{RandomContrast}, whose defaults assume $[0,255]$; training batches
+spanned $[0,\sim24]$ while validation stayed in $[0,1]$. The model collapsed to
+majority-class guessing (test accuracy 0.445). Setting
+\texttt{value\_range=(0,1)} fixed the skew. Second, the custom CNN's
+batch-normalisation momentum of 0.99 produced stale moving averages: training
+mode reached 0.85 accuracy while inference mode predicted one class for every
+input. Momentum 0.9 fixed inference. Both bugs are documented in
+\texttt{DECISIONS.md} with the exact symptoms and fixes.
+
+\subsection{Limitations}
+The build is CPU-only, so all runs use $224\times224$ inputs rather than the
+native $512\times512$, and the optimisation grid is smaller than a GPU budget
+would allow. Model A's E5 study covers Adam, SGD, and cosine decay; AdamW and
+RMSprop were cut and the cut is recorded. The leak-free re-split is a control,
+not a field test: it removes augmentations of the same fruit, but it cannot
+simulate a genuinely new orchard, camera, or season. The test set has 392
+images, so a one-image difference is 0.26 percentage points; confidence
+intervals and McNemar tests are reported for exactly this reason. Finally, the
+released split's validation count is 755 on disk versus 775 in the release
+notes; we report the discrepancy and do not adjust it.
+
+\section{Conclusion}
+We compared a from-scratch CNN with two-phase MobileNetV2 transfer learning on
+GFDD24 under a leakage-aware protocol. The released split is fully leaked, so
+we built a cluster-grouped leak-free control and tuned only on its validation
+split. After fixing an early-stopping bug and a batch-normalisation bug, we ran
+a controlled optimisation grid and three seeds per final configuration. The
+final comparison is supported by bootstrap confidence intervals and exact
+McNemar tests, and the qualitative evidence is shown with Grad-CAM. The
+practical lesson is that transfer learning is the stronger default on this
+small dataset, but the more important lesson is methodological: a curated-split
+accuracy is not a deployment estimate, and a leak-free control plus paired
+statistics is the minimum honest evaluation.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

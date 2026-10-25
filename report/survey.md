@@ -105,15 +105,6 @@ curated-split accuracy; we report curated-split *and* leak-free accuracy
 plus Grad-CAM evidence — the honest comparison a deployment decision
 needs.
 
-## 7. Gap this project fills
-
-No prior work we found trains *both* a from-scratch CNN and two-phase
-MobileNetV2 transfer learning on GFDD24 **with the leakage quantified
-and a leak-free control reported side by side**. Papers report
-curated-split accuracy; we report curated-split *and* leak-free accuracy
-plus Grad-CAM evidence — the honest comparison a deployment decision
-needs.
-
 ## 8. Comparative overview table (2.1 — the teacher's section)
 
 12 disease-classification studies + GFDD24 itself. Every row verified
@@ -137,7 +128,7 @@ a careful reader should notice.
 | [10] | Mohanty et al. 2016, Front. Plant Sci. 7:1419 | AlexNet/GoogLeNet from scratch + transfer | PlantVillage: 54,306 leaves, 38 classes, 14 crops | Up to 99.35% held-out acc | Lab-curated leaves; accuracy collapses on field photos from other sources (authors' own warning) — the field-gap precedent for our work |
 | [11] | Maitlo et al. 2023, Mendeley w3fg8jjmzr | Dataset release: variety/maturity grading (Canon EOS 5D, 850x1300) | 2,309 guava fruit images; 3 varieties x 3 maturity stages | — (dataset) | Grading, not disease; different task/taxonomy; included to show dataset diversity, not as a baseline |
 | [12] | Ghosh et al. 2026, arXiv:2602.10967 | InceptionV3 comparison on GFDD24 | GFDD24 (473 originals, Anthracnose/Fruit Flies/Healthy) | Comparative InceptionV3 baseline (see preprint for per-split numbers) | Preprint; curated split; included as the closest architectural comparator to our Model B |
-| [13] | Pratama et al. 2025 (JESSI, MobileNetV2 on guava) | — | — | — | **DROPPED 9 Oct 2026: could not verify** via web search / publisher page. Per project rules (no unverifiable citations) it is excluded; listed here so the omission is explicit, not silent. |
+| [13] | Pratama, Lamada \& Surianto 2025, JESSI 6(3):464-477, DOI 10.59562/jessi.v6i3.10153 | Transfer learning: MobileNetV2-based CNN for guava fruit disease detection/classification | Guava fruit disease images (see paper) | Reported by the authors in the paper (not reproduced here) | Re-verified via Crossref API + DOI resolver 25 Oct 2026; volume/issue encoded in the DOI (`v6i3`); not used as a numeric baseline because we did not reproduce its split |
 
 ## 9. Categorization by methodological family (2.2)
 
@@ -195,5 +186,5 @@ above gives them everything needed to check.
 | CNN-GB ensemble ~99.99% on GFDD24 (arXiv Dec 2025 preprint) | https://arxiv.org/abs/2512.19989 |
 | Maitlo et al. 2023 guava grading dataset (Mendeley w3fg8jjmzr, 2309 imgs) | https://data.mendeley.com/datasets/w3fg8jjmzr/1 + https://pmc.ncbi.nlm.nih.gov/articles/PMC10412757 |
 | Ghosh et al. 2026, arXiv:2602.10967, InceptionV3 on GFDD24 | https://arxiv.org/abs/2602.10967 |
-| Pratama et al. 2025 (JESSI) — SEARCHED 9 Oct 2026, no publisher/DOI page found | web search "Pratama MobileNetV2 guava fruit JESSI 2025" returned only unrelated JAIC mushroom paper — DROPPED per no-unverifiable-citations rule |
+| Pratama, Lamada \& Surianto 2025, JESSI 6(3):464-477, DOI 10.59562/jessi.v6i3.10153 | Crossref API `https://api.crossref.org/works/10.59562/jessi.v6i3.10153` returned status 200 with title, authors, pages 464-477, published 2025-10-21; DOI resolver agrees. Re-verified 25 Oct 2026 and restored to the table. |
 

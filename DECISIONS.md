@@ -120,3 +120,86 @@
   train transfer-leakfree fully (15+20, ~15 min, fast), and report both
   plainly in `outputs/results/analysis.md` and slides. No re-run of the
   3.7h custom-leakfree job.
+
+## D11. Final-experiments branch + corrected early stopping (25 Oct 2026)
+- Created branch `final-experiments` from `main` (HEAD `d72a501`).
+- `train.py` now defaults EarlyStopping to `val_accuracy` (patience 8,
+  `restore_best_weights=True`) and exposes `--es-monitor`, `--es-patience`,
+  `--start-from-epoch`. The fixed Model A runs use `val_accuracy`; the old
+  `custom_base` run (val_loss, stopped at epoch 9) is retained as provenance
+  only.
+- Released-split fixed Model A is capped at 15 epochs (the task requires
+  "at least 15"); the leak-free run resumes the surviving 16-epoch checkpoint
+  and continues to 40 epochs (cut documented in D14 if the CPU budget forces
+  an earlier stop).
+- Added per-run metadata fields (`task`, `note`, `optimizer`, LRs, schedule,
+  unfreeze depth, data split, best epoch) and resumability: a run whose
+  `_meta.json` and best checkpoint both exist is skipped unless `--force`.
+
+## D12. Optimisation protocol (25 Oct 2026)
+- All E1-E5 tuning uses `Dataset_leakfree/`: train fits, val selects. The
+  leak-free test split is touched only by Task 1 (required fixed Model A) and
+  by E6 final configurations. Released test is evaluated once per final run to
+  quantify leakage, using `evaluate.py --suffix released` so the leak-free and
+  released metrics do not overwrite each other.
+- E1 uses Adam / AdamW / SGD(Nesterov 0.9) / RMSprop. AdamW uses Keras'
+  default weight decay 0.004. SGD uses the task-specified 1e-2 head / 1e-3
+  fine-tune. All other optimisers use 1e-3 head / 1e-5 fine-tune.
+- E2 is one-factor-at-a-time: head {1e-2, 1e-3, 3e-4}, fine-tune
+  {1e-4, 1e-5, 1e-6}. The 1e-3 / 1e-5 reference is the E1 Adam run and is not
+  duplicated.
+- E3 unfreezes last {0, 30, 60, all} non-BN layers; last-30 is the E1 Adam
+  reference. E4 compares MobileNetV2 / EfficientNetB0 / ResNet50 under the
+  same two-phase protocol; MobileNetV2 is the E1 Adam reference.
+- EfficientNetB0 preprocessing was corrected: Keras EfficientNet contains its
+  own Rescaling(1/255)+Normalization, so the model must receive [0,255];
+  the previous [-1,1] rescaling would have made every input negative. ResNet50
+  uses an RGB-order mean-subtraction approximation (no BGR flip) and this is
+  stated wherever its number appears.
+
+## D13. E5 scope cut for Model A (25 Oct 2026)
+- Model A is ~3.5-5 CPU-min/epoch at 224px. E5 runs use the 12-epoch cap but
+  are executed for **8 epochs** because the two concurrent training streams
+  roughly doubled per-epoch wall time; the 8-epoch choice is recorded here,
+  not silent. We run Adam + ReduceLROnPlateau, SGD + Nesterov +
+  ReduceLROnPlateau, and Adam + cosine decay. AdamW and RMSprop for Model A
+  are **not run** because each additional run costs ~30-50 CPU minutes; the
+  cut is explicit.
+- E6 trains the best E5 Model A setting and the best E1-E4 Model B setting
+  with seeds 42/43/44. Seed-42 runs are reused (cloned) when the configuration
+  is identical; no duplicate training. E6 Model A uses the same 8-epoch
+  budget as E5 so the comparison is consistent.
+- The leak-free Task-1 Model A run resumes the 16-epoch survivor and is
+  continued to **25 epochs** (9 additional epochs) rather than 40; the old run
+  is reported as interrupted 17/40, the resumed run as 25/40, and the
+  remaining 15 epochs are an explicit CPU-budget cut. The released fixed run
+  is 15 epochs (the task's minimum).
+
+## D14. Provenance incident: smoke test clobbered base artifacts (25 Oct 2026)
+- A final smoke command used the default `--tag base`, overwriting
+  `custom_base.keras`, `transfer_MobileNetV2_base.keras`, their CSV logs and
+  meta files with 1-epoch/64-image smoke artifacts. The *metrics JSONs* from
+  the original real runs survive and are still valid evidence for the old
+  provenance numbers (A 0.9110, B 0.9921), but per-image predictions for the
+  old base runs are gone.
+- Consequence: the old base runs are reported as provenance only (no McNemar
+  against them). The final A/B comparison uses newly trained fixed/final runs
+  with saved per-image predictions. `train.py` now skips a run when its
+  meta+checkpoint exist, which prevents this class of accident; smoke tests
+  must use a unique tag (e.g. `qa1`).
+
+## D15. Pratama et al. 2025 re-verified (25 Oct 2026)
+- The previously dropped JESSI paper was re-checked against the Crossref API:
+  DOI `10.59562/jessi.v6i3.10153` returns status 200, title "Transfer
+  Learning-Based CNN for Guava Fruit Disease Detection and Classification",
+  authors Pratama / Lamada / Surianto, pages 464-477, published 2025-10-21.
+  Volume/issue are encoded in the DOI (`v6i3`). Restored to
+  `references.bib` and the survey table; not used as a numeric baseline
+  because we did not reproduce its split.
+
+## D16. Statistics (25 Oct 2026)
+- Per-image predictions saved for every final run. Bootstrap CIs use 2,000
+  resamples with seed 42. McNemar uses the exact two-sided binomial test;
+  the chi-square-with-continuity statistic is also stored. Differences that
+  are not significant at alpha=0.05 are described as within noise; a
+  significant difference spanning <=2 test images is flagged separately.

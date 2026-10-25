@@ -35,12 +35,14 @@ import config  # noqa: E402
 import data_pipeline  # noqa: E402
 
 RUN_LABELS = {
-    "custom_base": "A: Custom CNN",
-    "transfer_MobileNetV2_base": "B: MobileNetV2 TL",
+    "custom_base": "A: Custom CNN (old)",
+    "custom_es-fixed": "A: Custom CNN (fixed)",
+    "custom_es-fixed-leakfree": "A: Custom CNN (fixed, leak-free)",
+    "transfer_MobileNetV2_base": "B: MobileNetV2 (old)",
     "transfer_MobileNetV2_frozen": "B frozen (no FT)",
     "transfer_MobileNetV2_noaug": "B no-augment",
-    "custom_leakfree": "A leak-free",
-    "transfer_MobileNetV2_leakfree": "B leak-free",
+    "custom_leakfree": "A leak-free (partial)",
+    "transfer_MobileNetV2_leakfree": "B leak-free (old)",
 }
 
 
@@ -55,8 +57,8 @@ def model_runs() -> list[Path]:
 
 def load_test_arrays(data_dir: Path, img_size: int,
                      batch_size: int) -> tuple[np.ndarray, np.ndarray,
-                                              np.ndarray, list[str]]:
-    """Return (images, one-hot labels, int labels, class names) for test."""
+                                              np.ndarray, list[str], list[str]]:
+    """Return (images, one-hot labels, int labels, class names, files) for test."""
     _, _, test_ds, class_names = data_pipeline.load_datasets(
         dataset_dir=data_dir, img_size=(img_size, img_size),
         batch_size=batch_size, seed=config.SEED, use_augmentation=False)
@@ -66,7 +68,16 @@ def load_test_arrays(data_dir: Path, img_size: int,
         ys.append(y.numpy())
     X = np.concatenate(xs)
     Y = np.concatenate(ys)
-    return X, Y, np.argmax(Y, axis=1), class_names
+    files: list[str] = []
+    for cls in class_names:
+        cls_files = sorted(
+            p for p in (data_dir / "test" / cls).glob("*")
+            if p.is_file() and not p.name.startswith("."))
+        files.extend(str(p.relative_to(data_dir)) for p in cls_files)
+    if len(files) != len(Y):
+        raise RuntimeError(
+            f"file/label mismatch: {len(files)} files vs {len(Y)} labels")
+    return X, Y, np.argmax(Y, axis=1), class_names, files
 
 
 def evaluate_model(ckpt: Path, X: np.ndarray, Y: np.ndarray, y: np.ndarray,
@@ -144,26 +155,69 @@ def plot_curves(runs: list[str], out: Path) -> None:
     plt.close(fig)
 
 
-def plot_roc(metrics: dict, class_names: list[str], out: Path) -> None:
-    """One-vs-rest ROC curves for the two main models."""
-    fig, ax = plt.subplots(figsize=(6, 5))
-    for run in ("custom_base", "transfer_MobileNetV2_base"):
+def plot_roc(metrics: dict, class_names: list[str], out: Path,
+             runs: list[str] | None = None, title: str = "") -> None:
+    """One-vs-rest ROC curves; legends use display names, not folder names."""
+    fig, ax = plt.subplots(figsize=(6.4, 5.2))
+    for run in (runs if runs is not None else list(metrics)):
         if run not in metrics:
             continue
         y_true = np.array(metrics[run]["y_true"])
         P = np.array(metrics[run]["y_score"])
         for i, c in enumerate(class_names):
+            disp = config.DISPLAY_NAMES.get(c, c)
             fpr, tpr, _ = roc_curve((y_true == i).astype(int), P[:, i])
-            ax.plot(fpr, tpr, label=f"{RUN_LABELS.get(run, run)}/{c} "
+            ax.plot(fpr, tpr, label=f"{RUN_LABELS.get(run, run)}: {disp} "
                                     f"(AUC={auc(fpr, tpr):.3f})")
     ax.plot([0, 1], [0, 1], "k--", label="Chance")
     ax.set_xlabel("False positive rate")
     ax.set_ylabel("True positive rate")
-    ax.set_title("One-vs-rest ROC curves (test set)")
-    ax.legend(fontsize=7)
+    ax.set_title(title or "One-vs-rest ROC curves (test set)")
+    ax.legend(fontsize=6.5)
     fig.tight_layout()
     fig.savefig(out, dpi=150)
     plt.close(fig)
+
+
+def plot_roc_single(metrics: dict, run: str, class_names: list[str],
+                    out: Path, title: str) -> None:
+    """Per-model ROC figure with display-name legend."""
+    if run not in metrics:
+        return
+    y_true = np.array(metrics[run]["y_true"])
+    P = np.array(metrics[run]["y_score"])
+    fig, ax = plt.subplots(figsize=(6, 5))
+    for i, c in enumerate(class_names):
+        disp = config.DISPLAY_NAMES.get(c, c)
+        fpr, tpr, _ = roc_curve((y_true == i).astype(int), P[:, i])
+        ax.plot(fpr, tpr, label=f"{disp} (AUC={auc(fpr, tpr):.3f})")
+    ax.plot([0, 1], [0, 1], "k--", label="Chance")
+    ax.set_xlabel("False positive rate")
+    ax.set_ylabel("True positive rate")
+    ax.set_title(title)
+    ax.legend(fontsize=8)
+    fig.tight_layout()
+    fig.savefig(out, dpi=150)
+    plt.close(fig)
+
+
+def save_predictions(run: str, files: list[str], y_true: np.ndarray,
+                     y_pred: np.ndarray, P: np.ndarray,
+                     class_names: list[str], data_dir: Path) -> Path:
+    """Save per-image predictions for paired statistical tests."""
+    df = pd.DataFrame({
+        "file": files,
+        "y_true": y_true,
+        "y_pred": y_pred,
+        "correct": (y_true == y_pred).astype(int),
+        "test_set": data_dir.name,
+    })
+    for i, c in enumerate(class_names):
+        df[f"p_{c}"] = P[:, i]
+    out = config.RESULTS_DIR / f"{run}_preds.csv"
+    df.to_csv(out, index=False)
+    return out
+
 
 def main() -> None:
     """Evaluate all checkpoints; write metrics, figures and result tables."""
@@ -172,53 +226,94 @@ def main() -> None:
     ap.add_argument("--img-size", type=int, default=config.IMG_SIZE[0])
     ap.add_argument("--batch-size", type=int, default=config.BATCH_SIZE)
     ap.add_argument("--tag-filter", default=None)
+    ap.add_argument("--runs", default=None,
+                    help="comma-separated checkpoint stems (test only finals)")
+    ap.add_argument("--table", action="store_true",
+                    help="write results_table.csv/tex for the selected runs")
+    ap.add_argument("--preds", action="store_true",
+                    help="save per-image prediction CSV for paired tests")
+    ap.add_argument("--suffix", default="",
+                    help="output suffix, e.g. 'released' to keep split results apart")
     args = ap.parse_args()
 
     config.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     config.PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-    runs = model_runs()
+    queue = model_runs()
     if args.tag_filter:
-        runs = [p for p in runs if args.tag_filter in p.stem]
+        queue = [p for p in queue if args.tag_filter in p.stem]
+    if args.runs:
+        wanted = [s.strip() for s in args.runs.split(",") if s.strip()]
+        by_stem = {p.stem: p for p in queue}
+        missing = [s for s in wanted if s not in by_stem]
+        if missing:
+            raise FileNotFoundError(f"checkpoints not found: {missing}")
+        runs = [by_stem[s] for s in wanted]
+    else:
+        runs = queue
     print(f"Checkpoints: {[p.name for p in runs]}", flush=True)
     if not runs:
         print("No checkpoints found; train first.", flush=True)
         return
 
-    X, Y, y, class_names = load_test_arrays(
-        Path(args.data_dir), args.img_size, args.batch_size)
+    data_dir = Path(args.data_dir)
+    X, Y, y, class_names, files = load_test_arrays(
+        data_dir, args.img_size, args.batch_size)
     labels = [config.DISPLAY_NAMES.get(c, c) for c in class_names]
     print(f"Test arrays: {X.shape} classes={class_names}", flush=True)
 
     metrics: dict = {}
     for ckpt in runs:
-        print(f"Evaluating {ckpt.name}...", flush=True)
+        run_id = ckpt.stem + (f"__{args.suffix}" if args.suffix else "")
+        print(f"Evaluating {ckpt.name} -> {run_id}...", flush=True)
         m = evaluate_model(ckpt, X, Y, y, class_names)
-        metrics[m["run"]] = m
+        m["run_id"] = run_id
+        metrics[run_id] = m
         lite = {k: v for k, v in m.items()
                 if k not in ("y_true", "y_pred", "y_score")}
-        (config.RESULTS_DIR / f"{m['run']}_metrics.json").write_text(
+        lite["data_dir"] = data_dir.name
+        lite["n_test"] = int(len(y))
+        lite["class_names"] = class_names
+        (config.RESULTS_DIR / f"{run_id}_metrics.json").write_text(
             json.dumps(lite, indent=2))
+        if args.preds:
+            save_predictions(run_id, files, y, np.array(m["y_pred"]),
+                             np.array(m["y_score"]), class_names, data_dir)
+        label = RUN_LABELS.get(m["run"], m["run"])
         cm = np.array(m["confusion_matrix"])
         plot_confusion(cm, labels,
-                       config.PLOTS_DIR / f"{m['run']}_cm.png",
-                       f"Confusion matrix — {RUN_LABELS.get(m['run'], m['run'])}")
+                       config.PLOTS_DIR / f"{run_id}_cm.png",
+                       f"Confusion matrix — {label}")
         plot_confusion(cm, labels,
-                       config.PLOTS_DIR / f"{m['run']}_cm_norm.png",
-                       f"Confusion matrix (row-normalized) — "
-                       f"{RUN_LABELS.get(m['run'], m['run'])}",
+                       config.PLOTS_DIR / f"{run_id}_cm_norm.png",
+                       f"Confusion matrix (row-normalized) — {label}",
                        normalize=True)
         print(f"  acc={m['test_accuracy']:.4f} macroF1={m['macro_f1']:.4f} "
               f"AUC={m['macro_auc']:.4f}", flush=True)
 
-    plot_curves(list(metrics), config.PLOTS_DIR / "training_curves.png")
-    plot_roc(metrics, class_names, config.PLOTS_DIR / "roc_curves.png")
+    base_runs = list(dict.fromkeys(m["run"] for m in metrics.values()))
+    plot_curves(base_runs, config.PLOTS_DIR / "training_curves.png")
+    plot_roc(metrics, class_names, config.PLOTS_DIR / "roc_curves.png",
+             runs=list(metrics),
+             title=f"One-vs-rest ROC — {data_dir.name} test")
+    for run_id, m in metrics.items():
+        plot_roc_single(
+            metrics, run_id, class_names,
+            config.PLOTS_DIR / f"roc_{run_id}.png",
+            f"ROC — {RUN_LABELS.get(m['run'], m['run'])} "
+            f"({data_dir.name} test)")
+
+    if not args.table:
+        print(f"Wrote {config.RESULTS_DIR / 'metrics'} and {config.PLOTS_DIR}",
+              flush=True)
+        return
 
     rows = []
-    for run, m in metrics.items():
-        meta_path = config.LOGS_DIR / f"{run}_meta.json"
+    for run_id, m in metrics.items():
+        meta_path = config.LOGS_DIR / f"{m['run']}_meta.json"
         meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
         rows.append({
-            "Model": RUN_LABELS.get(run, run),
+            "Model": RUN_LABELS.get(m["run"], m["run"]),
+            "Test set": data_dir.name,
             "Test acc": round(m["test_accuracy"], 4),
             "Macro P": round(m["macro_precision"], 4),
             "Macro R": round(m["macro_recall"], 4),
@@ -236,9 +331,6 @@ def main() -> None:
     table.to_csv(config.RESULTS_DIR / "results_table.csv", index=False)
     tex = table.to_latex(index=False, escape=False,
                          column_format="l" + "c" * (len(table.columns) - 1))
-    tex = (tex.replace("\\toprule", "\\toprule")
-              .replace("\\midrule", "\\midrule")
-              .replace("\\bottomrule", "\\bottomrule"))
     (config.RESULTS_DIR / "results_table.tex").write_text(tex)
     print(table.to_string(index=False), flush=True)
     print(f"Wrote {config.RESULTS_DIR} and {config.PLOTS_DIR}", flush=True)
